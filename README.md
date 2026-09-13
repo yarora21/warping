@@ -2,7 +2,7 @@
 
 A single-company take-home implementation with a fictional team. The MVP will connect employee information and assignment rules to dated, explainable policy assignments.
 
-**Current increment: PR 1 — employee directory and policy catalog.** Browse 18 employees, inspect employment details, search/filter the directory, and explore 11 policies across five categories. Assignments, overrides, and editing arrive in later increments; catalog availability is not an employee assignment.
+**Current increment: PR 2 — explainable assignments and complete timelines.** Browse 18 employees, inspect assignments on any date, select employees in the Assignments report, and explore 11 policies and 12 readable rules. Profiles include “Why?” details and past/future timelines. Manual overrides and input editing arrive in later increments.
 
 ## Run locally
 
@@ -19,6 +19,7 @@ The demo date defaults to **September 12, 2026**. Optional settings are listed i
 
 ```sh
 make test     # Focused PostgreSQL checks, rolled back after each test
+make reconcile # Recalculate complete timelines; unchanged runs write nothing
 make logs     # Recent API/web logs
 make down     # Stop containers; preserve database volume
 ```
@@ -46,7 +47,9 @@ The Vite server proxies `/api` to localhost:8010. The production Compose web con
 backend/
   app/clock.py          Shared date source
   app/database.py       SQLAlchemy engine
-  app/queries.py        Explicit, batched read queries
+  app/queries.py        Explicit, batched directory queries
+  app/resolver.py       Pure point/timeline resolver and field registry
+  app/assignments.py    Input loading, transactional reconciliation, stored reads
   app/schemas.py        Typed API responses / generated frontend contract
   app/seed.py           Additive fictional fixtures
   app/main.py           HTTP routes
@@ -56,11 +59,12 @@ frontend/src/          React screens, styles, API client and generated types
 docs/                  Architecture and human walkthrough
 ```
 
-The initial data layer uses SQLAlchemy connections with explicit parameterized SQL. This avoids maintaining duplicate ORM models just for a small read surface. The migration is the source of truth for database constraints. New resolver modules will consume typed snapshots rather than HTTP requests or database state directly.
+The data layer uses SQLAlchemy connections with explicit parameterized SQL. The migration is the source of truth for database constraints. The resolver accepts in-memory inputs and an explicit date, with typed conditions and explanations; it does not access HTTP, the database, or the application clock. Stored timelines have no horizon and use unbounded final intervals. Run `make seed` after upgrading from PR 1 to add missing rules and reconcile; existing input rows are preserved.
 
 ## Review and design
 
 - [PR 1 manual walkthrough](docs/pr1-walkthrough.md)
+- [PR 2 manual walkthrough](docs/pr2-walkthrough.md)
 - [Architecture and schema diagram](docs/architecture.md)
 - [MVP implementation plan](implementation-plan.md)
 - [Schema design reference](policy-assignment-schema.md)

@@ -4,11 +4,30 @@ export type Person = components["schemas"]["Person"];
 export type Category = components["schemas"]["Category"];
 export type Settings = components["schemas"]["Settings"];
 
-async function get<T>(path: string): Promise<T> {
+export async function get<T>(path: string): Promise<T> {
   const response = await fetch(`/api/${path}`);
   if (!response.ok)
     throw new Error("We couldn’t load your company data. Please try again.");
   return response.json() as Promise<T>;
+}
+
+export type Interval = components["schemas"]["Interval"];
+export type Rule = components["schemas"]["RuleView"];
+export type Report = components["schemas"]["AssignmentReport"];
+
+export async function queryAssignments(
+  query: components["schemas"]["AssignmentQuery"],
+): Promise<Report> {
+  const response = await fetch("/api/assignments/query", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(query),
+  });
+  if (!response.ok)
+    throw new Error(
+      "Assignments could not be loaded. Check the date and try again.",
+    );
+  return response.json();
 }
 
 export const loadDirectory = () =>

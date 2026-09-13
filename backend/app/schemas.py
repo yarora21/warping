@@ -1,6 +1,7 @@
 from datetime import date
 from typing import Literal
 from pydantic import BaseModel
+from app.resolver import Interval, Gap, Conditions
 
 
 class Settings(BaseModel):
@@ -38,3 +39,29 @@ class Category(BaseModel):
     name: str
     cardinality: Literal["exactly_one", "at_most_one", "many"]
     policies: list[Policy]
+
+
+class AssignmentQuery(BaseModel):
+    as_of: date
+    employee_ids: list[str] | None = None
+    category_id: str | None = None
+    policy_id: str | None = None
+
+
+class AssignmentReport(BaseModel):
+    as_of: date
+    assignments: list[Interval]
+    gaps: list[Gap]
+    inactive_employee_ids: list[str]
+
+
+class RuleView(BaseModel):
+    id: str
+    rule_id: str
+    name: str
+    policy_id: str
+    priority: int
+    conditions: Conditions
+    summary: str
+    effective_from: date
+    effective_to: date | None

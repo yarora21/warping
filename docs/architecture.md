@@ -1,13 +1,17 @@
-# Architecture — PR 1
+# Architecture — PR 2
 
 ## Implemented
 
 ```mermaid
 flowchart LR
-    HR[HR user] --> UI[React directory and catalog]
+    HR[HR user] --> UI[React profiles, catalog and assignment report]
     UI --> API[FastAPI read endpoints]
     API --> DB[(PostgreSQL)]
-    SEED[Explicit additive seed command] --> DB
+    SEED[Explicit seed / reconcile command] --> LOCK[Company transaction lock]
+    LOCK --> LOAD[Load dated inputs in batches]
+    LOAD --> RESOLVE[Pure point and timeline resolver]
+    RESOLVE --> DIFF[Diff intervals and evidence]
+    DIFF --> DB
     MIG[Alembic migrations] --> DB
     API -. OpenAPI types .-> UI
 ```
@@ -25,17 +29,32 @@ erDiagram
     groups ||--o{ group_memberships : includes
     assignment_categories ||--o{ policies : contains
     policies ||--o{ policy_versions : describes
+    assignment_rules ||--o{ assignment_rule_versions : versions
+    policies ||--o{ assignment_rule_versions : targets
+    employees ||--o{ employee_assignments : receives
+    policies ||--o{ employee_assignments : assigned
+    reconciliation_runs ||--o{ assignment_changes : records
 ```
 
 Employment identity is stable; dated employment versions store the start and exclusive end. Attribute versions, memberships, and policy versions use the same interval convention. `NULL` ends are unbounded. PostgreSQL exclusion constraints reject overlapping nonsuperseded versions within their logical scope. A trigger prevents edits/deletes to recorded business values and permits supersession metadata to be set once.
 
-The read-only first increment has no editor; seeds create contained attribute/membership periods. The later transactional mutation service must additionally enforce full attribute coverage and interval containment within employment. Rehire identities naturally isolate memberships and future overrides. Actor IDs are fictional labels for now, not authenticated identities.
+PR 2 has no input editor; seeds create contained attribute/membership periods. Resolution rejects missing or overlapping employee snapshots during employment. Later edit services must also validate interval containment before saving. Rehire identities isolate memberships and future overrides. Actor IDs are fictional labels, not authenticated identities.
+
+## Resolution and reconciliation
+
+`resolve(inputs, employee_ids, date)` returns assignments and required-coverage gaps. It uses active employments, not the directory's display fallback. Rules are ordered by numeric priority ascending, then stable rule ID. Many-policy categories deduplicate policies while retaining every contributing rule. Tenure uses calendar-month anniversaries, including February 29 clamping. Manager status depends on active direct reports, including their employment start/end dates.
+
+`resolve_timeline(inputs, employee_id)` enumerates finite input and predicate boundaries, resolves segments, and merges adjacent equal results/evidence. The last segment can be unbounded. For simplicity, stored-input boundaries are collected conservatively across the company; irrelevant boundaries merge away. Tenure adds only the boundaries its predicates need. Supported tenure operators are `equals`, `gte`, and `lt`, with integer operands 0–1200 months. There is no rolling horizon or read-that-writes path.
+
+The typed explanation format stores captured category/policy labels, revision references, matching rule evidence, contributing sources, and tie decisions in deterministic order. A changing tenure count is represented by stable threshold truth and the source employment revision. This keeps interval equality meaningful. Future changes in evidence split intervals even when the policy remains unchanged.
+
+`assignment_transaction()` acquires a company lock before input reads at READ COMMITTED isolation. `reconcile()` then loads the complete current inputs, rejects required gaps, diffs canonical intervals, and writes only added/removed rows. Every removal/addition includes a snapshot in assignment-change history, linked to a run. A provenance change is a removal/addition pair. No-op reruns create no run or change rows. Seed uses this same lock and reconciliation transaction. Report reads use a repeatable-read snapshot across their queries.
+
+The report reads stored intervals, identifies dates outside employment, and checks missing required categories independently of policy filters. Unknown employee IDs are rejected. Optional categories can legitimately have no assignment. An explicit empty employee selection returns no results.
 
 ## Next increments
 
-The resolver will use a registry of typed fields and finite predicate boundaries. Complete stored assignment timelines end in unbounded intervals where appropriate; there is no rolling horizon or read-that-writes path. Rule/employee/group/override changes will use one company transaction lock and synchronous reconciliation. The seed command already takes that lock and will invoke reconciliation before committing once PR 2 adds it.
-
-Input revisions retain source evidence. Assignment-change records preserve prior computed outcomes; a dedicated audit event table and history screen remain deferred. Onboarding/employee edits may include gap-fixing set overrides atomically.
+Input revisions retain source evidence. Assignment-change records preserve prior computed outcomes; a dedicated audit event table and history screen remain deferred. Manual overrides will reuse the resolver and transaction service. Onboarding/employee edits will include gap-fixing set overrides atomically.
 
 ## Tradeoffs
 

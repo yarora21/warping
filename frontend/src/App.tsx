@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Assignments, RulesCatalog } from "./Assignments";
 import {
   dateLabel,
   loadDirectory,
@@ -41,7 +42,9 @@ export default function App() {
     null,
   );
   const [error, setError] = useState("");
-  const [page, setPage] = useState<"people" | "policies">("people");
+  const [page, setPage] = useState<"people" | "policies" | "assignments">(
+    "people",
+  );
   const [selected, setSelected] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [department, setDepartment] = useState("all");
@@ -62,7 +65,7 @@ export default function App() {
     };
   }, [attempt]);
 
-  function navigate(next: "people" | "policies") {
+  function navigate(next: "people" | "policies" | "assignments") {
     setPage(next);
     setSelected(null);
     setSearch("");
@@ -113,6 +116,13 @@ export default function App() {
           >
             <span aria-hidden="true">▤</span> Policies
           </button>
+          <button
+            className={page === "assignments" ? "nav-item active" : "nav-item"}
+            aria-current={page === "assignments" ? "page" : undefined}
+            onClick={() => navigate("assignments")}
+          >
+            <span aria-hidden="true">✓</span> Assignments
+          </button>
         </nav>
         <div className="sidebar-note">
           <span className="tiny-star" aria-hidden="true">
@@ -135,7 +145,11 @@ export default function App() {
         <header className="topbar">
           <span>
             Workspace <span className="slash">/</span>{" "}
-            {page === "people" ? "People" : "Policies"}
+            {page === "people"
+              ? "People"
+              : page === "policies"
+                ? "Policies"
+                : "Assignments"}
             {person && (
               <>
                 <span className="slash">/</span> {person.name}
@@ -240,17 +254,13 @@ export default function App() {
                   </div>
                 </dl>
               </section>
-              <div className="notice">
-                <span aria-hidden="true">ⓘ</span>
-                <div>
-                  <strong>Assignments are the next step</strong>
-                  <p>
-                    This first version gives you the employee directory and
-                    policy catalog. Calculated assignments and explanations
-                    arrive in the next increment.
-                  </p>
-                </div>
-              </div>
+              <Assignments
+                key={person.id}
+                employeeId={person.id}
+                people={people}
+                categories={categories}
+                today={data[0].today}
+              />
             </>
           ) : page === "people" ? (
             <>
@@ -400,6 +410,12 @@ export default function App() {
                 </div>
               </section>
             </>
+          ) : page === "assignments" ? (
+            <Assignments
+              people={people}
+              categories={categories}
+              today={data[0].today}
+            />
           ) : (
             <>
               <div className="page-heading">
@@ -425,8 +441,8 @@ export default function App() {
                 <div>
                   <h2>Clear policies. Confident decisions.</h2>
                   <p>
-                    Explore your company’s policy catalog. Assignment rules and
-                    individual exceptions will build on these categories.
+                    Explore your company’s policies and the rules that assign
+                    them. Open Assignments to see who receives each policy.
                   </p>
                 </div>
               </div>
@@ -436,6 +452,7 @@ export default function App() {
                   <p>Run the seed command to explore example categories.</p>
                 </div>
               )}
+              <RulesCatalog categories={categories} />
               {categories.map((category) => (
                 <section className="category-section" key={category.id}>
                   <div className="category-title">

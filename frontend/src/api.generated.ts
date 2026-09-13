@@ -4,6 +4,57 @@
  */
 
 export interface paths {
+  "/api/assignments/query": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Assignment Report */
+    post: operations["assignment_report_api_assignments_query_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/people/{employee_id}/timeline": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Timeline */
+    get: operations["timeline_api_people__employee_id__timeline_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/rules": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Rules */
+    get: operations["rules_api_rules_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/health": {
     parameters: {
       query?: never;
@@ -93,6 +144,34 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /** AssignmentQuery */
+    AssignmentQuery: {
+      /**
+       * As Of
+       * Format: date
+       */
+      as_of: string;
+      /** Employee Ids */
+      employee_ids?: string[] | null;
+      /** Category Id */
+      category_id?: string | null;
+      /** Policy Id */
+      policy_id?: string | null;
+    };
+    /** AssignmentReport */
+    AssignmentReport: {
+      /**
+       * As Of
+       * Format: date
+       */
+      as_of: string;
+      /** Assignments */
+      assignments: components["schemas"]["Interval"][];
+      /** Gaps */
+      gaps: components["schemas"]["Gap"][];
+      /** Inactive Employee Ids */
+      inactive_employee_ids: string[];
+    };
     /** Category */
     Category: {
       /** Id */
@@ -107,10 +186,95 @@ export interface components {
       /** Policies */
       policies: components["schemas"]["Policy"][];
     };
+    /** Condition */
+    Condition: {
+      /** Field */
+      field: string;
+      /** Operator */
+      operator: string;
+      /** Value */
+      value: string | number | boolean | string[];
+    };
+    /** Conditions */
+    Conditions: {
+      /** All */
+      all: components["schemas"]["Condition"][];
+    };
+    /** Explanation */
+    Explanation: {
+      /**
+       * Schema Version
+       * @default 1
+       */
+      schema_version: number;
+      /**
+       * Decision
+       * @enum {string}
+       */
+      decision: "priority" | "union" | "missing_required";
+      /** Category Name */
+      category_name: string;
+      /** Policy Name */
+      policy_name: string | null;
+      /** Input Revision Ids */
+      input_revision_ids: string[];
+      /** Matched Rules */
+      matched_rules: components["schemas"]["RuleEvidence"][];
+      /** Source Rule Version Ids */
+      source_rule_version_ids: string[];
+      /**
+       * Tie Broken
+       * @default false
+       */
+      tie_broken: boolean;
+    };
+    /** Fact */
+    Fact: {
+      /** Field */
+      field: string;
+      /** Label */
+      label: string;
+      /** Operator */
+      operator: string;
+      /** Expected */
+      expected: string | number | boolean | string[];
+      /** Actual */
+      actual: string | number | boolean | string[] | null;
+      /** Satisfied */
+      satisfied: boolean;
+    };
+    /** Gap */
+    Gap: {
+      /** Employee Id */
+      employee_id: string;
+      /** Category Id */
+      category_id: string;
+      /** Message */
+      message: string;
+    };
     /** HTTPValidationError */
     HTTPValidationError: {
       /** Detail */
       detail?: components["schemas"]["ValidationError"][];
+    };
+    /** Interval */
+    Interval: {
+      /** Employee Id */
+      employee_id: string;
+      /** Category Id */
+      category_id: string;
+      /** Policy Id */
+      policy_id: string;
+      /** Is Single */
+      is_single: boolean;
+      explanation: components["schemas"]["Explanation"];
+      /**
+       * Effective From
+       * Format: date
+       */
+      effective_from: string;
+      /** Effective To */
+      effective_to?: string | null;
     };
     /** Person */
     Person: {
@@ -164,6 +328,44 @@ export interface components {
        */
       effective_from: string;
     };
+    /** RuleEvidence */
+    RuleEvidence: {
+      /** Rule Id */
+      rule_id: string;
+      /** Version Id */
+      version_id: string;
+      /** Name */
+      name: string;
+      /** Policy Id */
+      policy_id: string;
+      /** Priority */
+      priority: number;
+      /** Facts */
+      facts: components["schemas"]["Fact"][];
+    };
+    /** RuleView */
+    RuleView: {
+      /** Id */
+      id: string;
+      /** Rule Id */
+      rule_id: string;
+      /** Name */
+      name: string;
+      /** Policy Id */
+      policy_id: string;
+      /** Priority */
+      priority: number;
+      conditions: components["schemas"]["Conditions"];
+      /** Summary */
+      summary: string;
+      /**
+       * Effective From
+       * Format: date
+       */
+      effective_from: string;
+      /** Effective To */
+      effective_to: string | null;
+    };
     /** Settings */
     Settings: {
       /**
@@ -202,6 +404,90 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+  assignment_report_api_assignments_query_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AssignmentQuery"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AssignmentReport"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  timeline_api_people__employee_id__timeline_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        employee_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Interval"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  rules_api_rules_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RuleView"][];
+        };
+      };
+    };
+  };
   health_api_health_get: {
     parameters: {
       query?: never;

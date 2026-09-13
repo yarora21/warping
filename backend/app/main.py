@@ -3,8 +3,50 @@ from sqlalchemy import text
 from app import clock, queries
 from app.database import engine
 from app.schemas import Category, Person, Settings
+from app.schemas import AssignmentQuery, AssignmentReport, RuleView
+from app.assignments import load_inputs, stored_intervals
+from app.resolver import Interval, Gap, active, describe_conditions
 
 app = FastAPI(title="Northstar policy assignments", version="0.1.0")
+
+
+@app.post('/api/assignments/query', response_model=AssignmentReport)
+def assignment_report(query: AssignmentQuery):
+    # Read-only POST supports arbitrary explicit employee selections without URL limits.
+    with engine.connect().execution_options(isolation_level='REPEATABLE READ') as connection:
+        inputs = load_inputs(connection)
+        known = {e['id'] for e in inputs.employees}
+        ids = set(query.employee_ids) if query.employee_ids is not None else known
+        if ids - known:
+            raise HTTPException(422, 'Unknown employee selection')
+        assignments = [interval for _, interval in stored_intervals(connection, sorted(ids))
+                       if interval.effective_from <= query.as_of and
+                       (interval.effective_to is None or query.as_of < interval.effective_to)]
+        employed = {j['employee_id'] for j in inputs.jobs if active(j, query.as_of)} & ids
+        present = {(a.employee_id, a.category_id) for a in assignments}
+        gaps = [Gap(employee_id=e, category_id=c['id'], message=f"No {c['name']} assigned. Run reconciliation or add a matching rule.")
+                for e in sorted(employed) for c in inputs.categories if c['cardinality'] == 'exactly_one'
+                and (e,c['id']) not in present and (query.category_id is None or query.category_id == c['id'])]
+        filtered = [a for a in assignments if (query.category_id is None or a.category_id == query.category_id)
+                    and (query.policy_id is None or a.policy_id == query.policy_id)]
+        return AssignmentReport(as_of=query.as_of, assignments=filtered, gaps=gaps,
+                                inactive_employee_ids=sorted(ids-employed))
+
+
+@app.get('/api/people/{employee_id}/timeline', response_model=list[Interval])
+def timeline(employee_id: str):
+    with engine.connect() as connection:
+        if not connection.execute(text('SELECT 1 FROM employees WHERE id=:id'), {'id': employee_id}).scalar():
+            raise HTTPException(404, 'Employee not found')
+        return [interval for _, interval in stored_intervals(connection, [employee_id])]
+
+
+@app.get('/api/rules', response_model=list[RuleView])
+def rules():
+    with engine.connect() as connection:
+        rows = connection.execute(text('''SELECT * FROM assignment_rule_versions WHERE superseded_at IS NULL
+            ORDER BY priority, rule_id, effective_from''')).mappings().all()
+        return [{**row, 'summary': describe_conditions(row['conditions'])} for row in rows]
 
 
 @app.get("/api/health")
