@@ -14,6 +14,31 @@ export async function get<T>(path: string): Promise<T> {
 export type Interval = components["schemas"]["Interval"];
 export type Rule = components["schemas"]["RuleView"];
 export type Report = components["schemas"]["AssignmentReport"];
+export type OverrideCommand = components["schemas"]["OverrideCommand"];
+export type OverrideImpact = components["schemas"]["OverrideImpact"];
+export type OverrideView = components["schemas"]["OverrideView"];
+
+export async function submitOverride(
+  command: OverrideCommand,
+  preview: boolean,
+): Promise<OverrideImpact> {
+  const response = await fetch(
+    preview ? "/api/overrides/preview" : "/api/overrides",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(command),
+    },
+  );
+  const result = await response.json();
+  if (!response.ok)
+    throw new Error(
+      typeof result.detail === "string"
+        ? result.detail
+        : "Check the effective dates and required fields.",
+    );
+  return result;
+}
 
 export async function queryAssignments(
   query: components["schemas"]["AssignmentQuery"],

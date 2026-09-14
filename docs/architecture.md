@@ -1,4 +1,4 @@
-# Architecture — PR 2
+# Architecture — PR 3
 
 ## Implemented
 
@@ -14,6 +14,10 @@ flowchart LR
     DIFF --> DB
     MIG[Alembic migrations] --> DB
     API -. OpenAPI types .-> UI
+    UI --> PREVIEW[Override preview / in-memory plan]
+    PREVIEW --> RESOLVE
+    UI --> SAVE[Override save / revalidate plan]
+    SAVE --> LOCK
 ```
 
 The UI uses the API's demo clock date for labels. Backend queries use the same clock, selecting active attribute revisions and a current, upcoming, or most recent employment for directory display. Former/upcoming profiles use the last/first valid employment attributes and are visibly labeled; this directory fallback will not be used as an assignment resolver snapshot. Memberships displayed on profiles are current as of the selected demo date.
@@ -34,11 +38,13 @@ erDiagram
     employees ||--o{ employee_assignments : receives
     policies ||--o{ employee_assignments : assigned
     reconciliation_runs ||--o{ assignment_changes : records
+    employments ||--o{ employee_assignment_overrides : scopes
+    policies o|--o{ employee_assignment_overrides : selects
 ```
 
 Employment identity is stable; dated employment versions store the start and exclusive end. Attribute versions, memberships, and policy versions use the same interval convention. `NULL` ends are unbounded. PostgreSQL exclusion constraints reject overlapping nonsuperseded versions within their logical scope. A trigger prevents edits/deletes to recorded business values and permits supersession metadata to be set once.
 
-PR 2 has no input editor; seeds create contained attribute/membership periods. Resolution rejects missing or overlapping employee snapshots during employment. Later edit services must also validate interval containment before saving. Rehire identities isolate memberships and future overrides. Actor IDs are fictional labels, not authenticated identities.
+Employee/rule editors are still deferred to subsequent increments. Resolution rejects missing or overlapping employee snapshots during employment. The manual override service validates employment containment, category/action compatibility, and policy availability for the full override period. Stable employment identities isolate memberships and overrides from later rehires. Actor IDs are fictional labels, not authenticated identities.
 
 ## Resolution and reconciliation
 
@@ -54,7 +60,15 @@ The report reads stored intervals, identifies dates outside employment, and chec
 
 ## Next increments
 
-Input revisions retain source evidence. Assignment-change records preserve prior computed outcomes; a dedicated audit event table and history screen remain deferred. Manual overrides will reuse the resolver and transaction service. Onboarding/employee edits will include gap-fixing set overrides atomically.
+Input revisions retain source evidence. Assignment-change records preserve prior computed outcomes; a dedicated audit event table and history screen remain deferred. Onboarding/employee edits will reuse the override planner to include gap-fixing set overrides atomically.
+
+## Manual overrides
+
+`plan_override(inputs, command, today)` validates a typed command and constructs an in-memory revised input set, then resolves the before/after timelines. Preview never writes. Save acquires the company lock, reloads and replans against current inputs, writes revision/supersession records, and reconciles within the same transaction. The UI shows the actual saved result and flags differences from the preview.
+
+Single categories allow set (and clear only for optional categories). Multiple categories allow add/exclude per policy. Replacing an active override ends the earlier period at the new effective date; when the new override expires, automatic rules resume rather than restoring the old override. Returning to automatic assignment uses the same shortening operation and preserves earlier evidence. Conflicts with a later scheduled override are rejected. Duplicate submitted IDs are rejected rather than creating duplicate exceptions.
+
+Source explanations include manual reasons, actor, revision ID, and effective dates. Exclusions and explicit clears remain visible on the profile even when they produce no assignment row. Test data lives in a random temporary schema, so human-created exceptions do not interfere with deterministic tests.
 
 ## Tradeoffs
 

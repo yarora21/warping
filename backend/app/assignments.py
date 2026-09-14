@@ -20,7 +20,7 @@ def load_inputs(connection) -> Inputs:
     return Inputs(employees=rows('employees', False), jobs=rows('employment_versions'),
                   attributes=rows('employee_versions'), memberships=rows('group_memberships'),
                   categories=rows('assignment_categories', False), policies=policies,
-                  rules=rows('assignment_rule_versions'))
+                  rules=rows('assignment_rule_versions'), overrides=rows('employee_assignment_overrides'))
 
 
 @contextmanager

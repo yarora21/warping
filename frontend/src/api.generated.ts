@@ -4,6 +4,57 @@
  */
 
 export interface paths {
+  "/api/people/{employee_id}/overrides": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Employee Overrides */
+    get: operations["employee_overrides_api_people__employee_id__overrides_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/overrides/preview": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Preview Override */
+    post: operations["preview_override_api_overrides_preview_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/overrides": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Create Override */
+    post: operations["create_override_api_overrides_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/assignments/query": {
     parameters: {
       query?: never;
@@ -211,7 +262,7 @@ export interface components {
        * Decision
        * @enum {string}
        */
-      decision: "priority" | "union" | "missing_required";
+      decision: "priority" | "union" | "missing_required" | "manual";
       /** Category Name */
       category_name: string;
       /** Policy Name */
@@ -227,6 +278,7 @@ export interface components {
        * @default false
        */
       tie_broken: boolean;
+      override?: components["schemas"]["OverrideEvidence"] | null;
     };
     /** Fact */
     Fact: {
@@ -275,6 +327,95 @@ export interface components {
       effective_from: string;
       /** Effective To */
       effective_to?: string | null;
+    };
+    /** OverrideCommand */
+    OverrideCommand: {
+      /**
+       * Request Id
+       * Format: uuid
+       */
+      request_id: string;
+      /** Employee Id */
+      employee_id: string;
+      /** Category Id */
+      category_id: string;
+      /** Policy Id */
+      policy_id?: string | null;
+      /**
+       * Action
+       * @enum {string}
+       */
+      action: "set" | "add" | "exclude" | "clear" | "end";
+      /** Target Override Id */
+      target_override_id?: string | null;
+      /**
+       * Effective From
+       * Format: date
+       */
+      effective_from: string;
+      /** Effective To */
+      effective_to?: string | null;
+      /** Reason */
+      reason: string;
+    };
+    /** OverrideEvidence */
+    OverrideEvidence: {
+      /** Id */
+      id: string;
+      /** Action */
+      action: string;
+      /** Reason */
+      reason: string;
+      /** Created By */
+      created_by: string;
+      /**
+       * Effective From
+       * Format: date
+       */
+      effective_from: string;
+      /** Effective To */
+      effective_to: string | null;
+    };
+    /** OverrideImpact */
+    OverrideImpact: {
+      /** Before */
+      before: components["schemas"]["Interval"][];
+      /** After */
+      after: components["schemas"]["Interval"][];
+      /** Overrides */
+      overrides: components["schemas"]["OverrideView"][];
+      /**
+       * Saved
+       * @default false
+       */
+      saved: boolean;
+    };
+    /** OverrideView */
+    OverrideView: {
+      /** Id */
+      id: string;
+      /** Employment Id */
+      employment_id: string;
+      /** Category Id */
+      category_id: string;
+      /** Policy Id */
+      policy_id: string | null;
+      /**
+       * Action
+       * @enum {string}
+       */
+      action: "set" | "add" | "exclude" | "clear";
+      /**
+       * Effective From
+       * Format: date
+       */
+      effective_from: string;
+      /** Effective To */
+      effective_to: string | null;
+      /** Reason */
+      reason: string;
+      /** Created By */
+      created_by: string;
     };
     /** Person */
     Person: {
@@ -404,6 +545,103 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+  employee_overrides_api_people__employee_id__overrides_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        employee_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OverrideView"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  preview_override_api_overrides_preview_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["OverrideCommand"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OverrideImpact"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  create_override_api_overrides_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["OverrideCommand"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OverrideImpact"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   assignment_report_api_assignments_query_post: {
     parameters: {
       query?: never;

@@ -4,10 +4,40 @@ from app import clock, queries
 from app.database import engine
 from app.schemas import Category, Person, Settings
 from app.schemas import AssignmentQuery, AssignmentReport, RuleView
-from app.assignments import load_inputs, stored_intervals
+from app.assignments import load_inputs, stored_intervals, assignment_transaction
+from app.overrides import OverrideCommand, OverrideImpact, OverrideView, plan_override, save_override
+from sqlalchemy.exc import IntegrityError
 from app.resolver import Interval, Gap, active, describe_conditions
 
 app = FastAPI(title="Northstar policy assignments", version="0.1.0")
+
+
+@app.get('/api/people/{employee_id}/overrides', response_model=list[OverrideView])
+def employee_overrides(employee_id: str):
+    with engine.connect() as connection:
+        return connection.execute(text('''SELECT o.* FROM employee_assignment_overrides o
+            JOIN employments e ON e.id=o.employment_id WHERE e.employee_id=:id AND o.superseded_at IS NULL
+            ORDER BY o.effective_from,o.id'''), {'id':employee_id}).mappings().all()
+
+
+@app.post('/api/overrides/preview', response_model=OverrideImpact)
+def preview_override(command: OverrideCommand):
+    try:
+        with engine.connect().execution_options(isolation_level='REPEATABLE READ') as connection:
+            return plan_override(load_inputs(connection),command,clock.today())[0]
+    except ValueError as error:
+        raise HTTPException(422,str(error)) from error
+
+
+@app.post('/api/overrides', response_model=OverrideImpact)
+def create_override(command: OverrideCommand):
+    try:
+        with assignment_transaction() as connection:
+            return save_override(connection,command,clock.today())
+    except ValueError as error:
+        raise HTTPException(422,str(error)) from error
+    except IntegrityError as error:
+        raise HTTPException(409,'This change conflicts with another saved override. Refresh and try again.') from error
 
 
 @app.post('/api/assignments/query', response_model=AssignmentReport)

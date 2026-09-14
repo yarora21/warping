@@ -10,6 +10,72 @@
 .assignment-section {
   margin-top: 26px;
 }
+.override-panel {
+  margin-bottom: 22px;
+}
+.override-item {
+  padding: 18px 24px;
+  border-top: 1px solid #e3e9e5;
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+}
+.override-item p {
+  margin: 9px 0;
+}
+.override-item small {
+  color: #627461;
+}
+.override-form {
+  border-top: 1px solid #e3e9e5;
+  padding: 24px;
+}
+.override-form fieldset {
+  border: 0;
+  padding: 0;
+  margin: 20px 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 18px;
+}
+.override-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+}
+.override-form input,
+.override-form textarea {
+  border: 1px solid #d5dfd4;
+  border-radius: 6px;
+  padding: 9px;
+  font: inherit;
+}
+.reason-field {
+  grid-column: 1 / -1;
+}
+.impact-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  padding: 20px;
+  background: #f6f8f4;
+  border-radius: 8px;
+}
+.impact-preview ul {
+  padding-left: 18px;
+}
+.impact-preview li {
+  margin: 12px 0;
+  line-height: 1.6;
+}
+.override-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
 .assignment-toolbar {
   flex-wrap: wrap;
 }

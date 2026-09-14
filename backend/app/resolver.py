@@ -1,6 +1,6 @@
 """Pure point/timeline resolution. No database, HTTP, or clock dependencies."""
 from calendar import monthrange
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, StrictStr, model_validator
@@ -90,15 +90,25 @@ class RuleEvidence(BaseModel):
     facts: list[Fact]
 
 
+class OverrideEvidence(BaseModel):
+    id: str
+    action: str
+    reason: str
+    created_by: str
+    effective_from: date
+    effective_to: date | None
+
+
 class Explanation(BaseModel):
     schema_version: int = 1
-    decision: Literal['priority', 'union', 'missing_required']
+    decision: Literal['priority', 'union', 'missing_required', 'manual']
     category_name: str
     policy_name: str | None
     input_revision_ids: list[str]
     matched_rules: list[RuleEvidence]
     source_rule_version_ids: list[str]
     tie_broken: bool = False
+    override: OverrideEvidence | None = None
 
 
 class Assignment(BaseModel):
@@ -134,6 +144,7 @@ class Inputs:
     categories: list[dict]
     policies: list[dict]
     rules: list[dict]
+    overrides: list[dict] = field(default_factory=list)
 
 
 def active(row: dict, day: date) -> bool:
@@ -199,6 +210,8 @@ def resolve(inputs: Inputs, employee_ids: list[str], day: date) -> Resolution:
         if loaded is None:
             continue
         values, refs = loaded
+        job = next(j for j in inputs.jobs if j['employee_id'] == employee_id and active(j,day))
+        overrides = [o for o in inputs.overrides if o['employment_id'] == job['employment_id'] and active(o,day)]
         matches = []
         for rule in rules:
             conditions = Conditions.model_validate(rule['conditions']).all
@@ -209,26 +222,44 @@ def resolve(inputs: Inputs, employee_ids: list[str], day: date) -> Resolution:
         for category in sorted(inputs.categories, key=lambda c: c['id']):
             matching = [r for r in matches if policies[r.policy_id]['category_id'] == category['id']]
             single = category['cardinality'] != 'many'
-            if not matching and category['cardinality'] == 'exactly_one':
+            targets = [matching[0].policy_id] if matching and single else sorted({r.policy_id for r in matching})
+            manual = [o for o in overrides if o['category_id'] == category['id']]
+            if single and len(manual)>1:
+                raise ValueError('Conflicting single-category overrides')
+            for override in manual:
+                if override['action'] == 'clear':
+                    if category['cardinality'] == 'exactly_one':
+                        raise ValueError('A required category cannot be cleared')
+                    targets = []
+                elif override['policy_id'] not in policies:
+                    raise ValueError('Override policy is not available for its entire period')
+                elif override['action'] == 'set':
+                    targets = [override['policy_id']]
+                elif override['action'] == 'add':
+                    targets = sorted(set(targets) | {override['policy_id']})
+                elif override['action'] == 'exclude':
+                    targets = [p for p in targets if p != override['policy_id']]
+            if not targets and category['cardinality'] == 'exactly_one':
                 result.gaps.append(Gap(employee_id=employee_id, category_id=category['id'],
                                        message=f"No {category['name']} matches. Add a rule or a manual assignment."))
-            targets = [matching[0].policy_id] if matching and single else sorted({r.policy_id for r in matching})
             for target in targets:
-                sources = [matching[0]] if single else [r for r in matching if r.policy_id == target]
+                override = next((o for o in manual if o['policy_id']==target and o['action'] in ('set','add')),None)
+                sources = [] if override else [matching[0]] if single else [r for r in matching if r.policy_id == target]
                 evidence = matching if single else sources
                 policy = policies[target]
                 result.assignments.append(Assignment(employee_id=employee_id, category_id=category['id'], policy_id=target,
-                    is_single=single, explanation=Explanation(decision='priority' if single else 'union',
+                    is_single=single, explanation=Explanation(decision='manual' if override else 'priority' if single else 'union',
                         category_name=category['name'], policy_name=policy['name'],
-                        input_revision_ids=sorted(set(refs + [policies[r.policy_id]['id'] for r in evidence])),
+                        input_revision_ids=sorted(set(refs + [policy['id']] + [policies[r.policy_id]['id'] for r in evidence] + ([override['id']] if override else []))),
                         matched_rules=evidence, source_rule_version_ids=[r.version_id for r in sources],
-                        tie_broken=single and len(matching) > 1 and matching[0].priority == matching[1].priority)))
+                        override=OverrideEvidence.model_validate(override) if override else None,
+                        tie_broken=not override and single and len(matching) > 1 and matching[0].priority == matching[1].priority)))
     return result
 
 
 def resolve_timeline(inputs: Inputs, employee_id: str) -> tuple[list[Interval], list[Gap]]:
     # Conservative company-wide boundaries keep cross-employee manager dependencies correct.
-    boundaries = {r[key] for rows in (inputs.jobs, inputs.attributes, inputs.memberships, inputs.rules, inputs.policies)
+    boundaries = {r[key] for rows in (inputs.jobs, inputs.attributes, inputs.memberships, inputs.rules, inputs.policies, inputs.overrides)
                   for r in rows for key in ('effective_from', 'effective_to') if r[key] is not None}
     conditions = [c for r in inputs.rules for c in Conditions.model_validate(r['conditions']).all]
     for job in inputs.jobs:

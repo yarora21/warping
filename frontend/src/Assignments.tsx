@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Overrides } from "./Overrides";
 import {
   dateLabel,
   get,
@@ -18,58 +19,84 @@ function valueLabel(value: unknown) {
 
 export function Why({ assignment }: { assignment: Interval }) {
   const explanation = assignment.explanation;
+  const appliedRules = explanation.matched_rules.filter((rule) =>
+    explanation.source_rule_version_ids.includes(rule.version_id),
+  );
+  const unusedRules = explanation.matched_rules.filter(
+    (rule) => !explanation.source_rule_version_ids.includes(rule.version_id),
+  );
   return (
     <details className="why">
       <summary>Why?</summary>
       <div className="explanation">
         <strong>
-          {explanation.decision === "priority"
-            ? "First matching rule wins"
-            : "All matching policies are included"}
+          {explanation.override
+            ? `${explanation.policy_name} was assigned manually.`
+            : `${explanation.policy_name} applies because:`}
         </strong>
-        {explanation.tie_broken && (
-          <p>Equal priorities were resolved using the stable rule ID.</p>
+        {explanation.override && (
+          <p>
+            {explanation.override.reason}
+            <br />
+            <small>
+              {explanation.override.created_by === "taylor"
+                ? "Taylor Brooks"
+                : explanation.override.created_by}{" "}
+              · {dateLabel(explanation.override.effective_from)} →{" "}
+              {explanation.override.effective_to
+                ? dateLabel(explanation.override.effective_to) + " (exclusive)"
+                : "ongoing"}
+            </small>
+          </p>
         )}
-        {explanation.matched_rules.map((rule) => (
+        {appliedRules.map((rule) => (
           <div className="rule-evidence" key={rule.version_id}>
-            <strong>{rule.name}</strong>{" "}
-            <span className="pill">
-              {explanation.source_rule_version_ids.includes(rule.version_id)
-                ? "Applies"
-                : "Lower precedence"}{" "}
-              · Order {rule.priority}
-            </span>
             {rule.facts.length ? (
               <ul>
                 {rule.facts.map((fact, i) => (
                   <li key={i}>
-                    {fact.label}{" "}
-                    {fact.operator === "gte"
-                      ? "is at least"
-                      : fact.operator === "lt"
-                        ? "is less than"
-                        : fact.operator === "in"
-                          ? "includes"
-                          : "equals"}{" "}
-                    {valueLabel(fact.expected)}{" "}
-                    <span className="muted">({valueLabel(fact.actual)})</span>
+                    {fact.field === "tenure_months"
+                      ? `Length of service is ${fact.operator === "gte" ? "at least" : fact.operator === "lt" ? "less than" : "exactly"} ${valueLabel(fact.expected)} completed months.`
+                      : fact.field === "is_manager"
+                        ? fact.actual
+                          ? "They manage employees."
+                          : "They do not manage employees."
+                        : `${fact.label}: ${valueLabel(fact.actual)}.`}
                   </li>
                 ))}
               </ul>
             ) : (
-              <p>Applies to everyone in active employment.</p>
+              <p>This rule covers everyone in active employment.</p>
             )}
+            <small className="muted">Assigned by “{rule.name}”.</small>
           </div>
         ))}
-        <details>
-          <summary>Source records</summary>
-          <p className="source-ids">
-            {[
-              ...explanation.input_revision_ids,
-              ...explanation.matched_rules.map((r) => r.version_id),
-            ].join(", ")}
+        {explanation.decision === "union" && (
+          <p>
+            This category allows multiple policies, so other matching policies
+            can apply too.
           </p>
-        </details>
+        )}
+        {unusedRules.length > 0 && (
+          <details>
+            <summary>Why weren’t other matching rules used?</summary>
+            <p>
+              {explanation.override
+                ? "The manual assignment replaces the automatic choice."
+                : "Only one policy can be assigned in this category. When several rules match, the company’s rule order determines which one is used."}
+            </p>
+            <ul>
+              {unusedRules.map((rule) => (
+                <li key={rule.version_id}>
+                  “{rule.name}” also matches, but{" "}
+                  {explanation.override
+                    ? "the manual assignment is used instead."
+                    : `“${appliedRules[0]?.name}” is checked first.`}
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
       </div>
     </details>
   );
@@ -141,6 +168,15 @@ export function Assignments({
             <p>Choose people and a date to see what applies, and why.</p>
           </div>
         </div>
+      )}
+      {employeeId && (
+        <Overrides
+          employeeId={employeeId}
+          categories={categories}
+          today={today}
+          asOf={day || today}
+          onSaved={() => setAttempt((n) => n + 1)}
+        />
       )}
       <div className="panel">
         <div className="toolbar assignment-toolbar">
@@ -282,7 +318,9 @@ export function Assignments({
                         <td>{a.explanation.category_name}</td>
                         <td>{a.explanation.policy_name}</td>
                         <td>
-                          <span className="badge">Automatic</span>
+                          <span className="badge">
+                            {a.explanation.override ? "Manual" : "Automatic"}
+                          </span>
                         </td>
                         <td>
                           <Why assignment={a} />
@@ -318,6 +356,9 @@ export function Assignments({
                     (a) =>
                       (!category || a.category_id === category) &&
                       (!policy || a.policy_id === policy),
+                  )
+                  .sort((a, b) =>
+                    b.effective_from.localeCompare(a.effective_from),
                   )
                   .map((a, i) => (
                     <tr key={i}>
@@ -367,17 +408,14 @@ export function RulesCatalog({ categories }: { categories: Category[] }) {
     <section className="panel">
       <div className="panel-heading">
         <h2>Assignment rules</h2>
-        <span className="muted">
-          Lower order numbers win within each category
-        </span>
+        <span className="muted">Rules determine who receives each policy</span>
       </div>
       {error && <p role="alert">{error}</p>}
       {!rules && !error && <p className="assignment-note">Loading rules…</p>}
       {rules?.map((rule) => (
         <details className="rule-list-item" key={rule.id}>
           <summary>
-            <strong>{rule.name}</strong> → {policies[rule.policy_id]}{" "}
-            <span className="pill">Order {rule.priority}</span>
+            <strong>{rule.name}</strong> → {policies[rule.policy_id]}
           </summary>
           <p>
             From {dateLabel(rule.effective_from)}

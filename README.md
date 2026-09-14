@@ -2,7 +2,7 @@
 
 A single-company take-home implementation with a fictional team. The MVP will connect employee information and assignment rules to dated, explainable policy assignments.
 
-**Current increment: PR 2 — explainable assignments and complete timelines.** Browse 18 employees, inspect assignments on any date, select employees in the Assignments report, and explore 11 policies and 12 readable rules. Profiles include “Why?” details and past/future timelines. Manual overrides and input editing arrive in later increments.
+**Current increment: PR 3 — manual exceptions with previews.** Browse 18 employees, inspect assignments on any date, and explore 11 policies and 12 readable rules. Profiles now support selecting, adding, excluding, or clearing optional assignments, with reasons, expiration dates, before/after previews, and “Use automatic assignment.” Employee/group and rule editing arrive in later increments.
 
 ## Run locally
 
@@ -18,7 +18,7 @@ Open [the workspace](http://localhost:5180) or [API documentation](http://localh
 The demo date defaults to **September 12, 2026**. Optional settings are listed in [.env.example](.env.example); create a local `.env` to override them. Set `APP_TODAY=` to use the current date in `COMPANY_TIMEZONE`. Effective dates remain date-only strings; changing the clock does not rewrite existing fixtures. Seed rows are inserted by stable IDs and never overwrite existing logical records.
 
 ```sh
-make test     # Focused PostgreSQL checks, rolled back after each test
+make test     # Focused checks in an isolated temporary PostgreSQL schema
 make reconcile # Recalculate complete timelines; unchanged runs write nothing
 make logs     # Recent API/web logs
 make down     # Stop containers; preserve database volume
@@ -50,6 +50,7 @@ backend/
   app/queries.py        Explicit, batched directory queries
   app/resolver.py       Pure point/timeline resolver and field registry
   app/assignments.py    Input loading, transactional reconciliation, stored reads
+  app/overrides.py      Validated in-memory override plans and atomic saves
   app/schemas.py        Typed API responses / generated frontend contract
   app/seed.py           Additive fictional fixtures
   app/main.py           HTTP routes
@@ -65,6 +66,7 @@ The data layer uses SQLAlchemy connections with explicit parameterized SQL. The 
 
 - [PR 1 manual walkthrough](docs/pr1-walkthrough.md)
 - [PR 2 manual walkthrough](docs/pr2-walkthrough.md)
+- [PR 3 manual walkthrough](docs/pr3-walkthrough.md)
 - [Architecture and schema diagram](docs/architecture.md)
 - [MVP implementation plan](implementation-plan.md)
 - [Schema design reference](policy-assignment-schema.md)
