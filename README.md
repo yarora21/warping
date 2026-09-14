@@ -2,7 +2,7 @@
 
 A single-company take-home implementation with a fictional team. The MVP will connect employee information and assignment rules to dated, explainable policy assignments.
 
-**Current increment: PR 3 — manual exceptions with previews.** Browse 18 employees, inspect assignments on any date, and explore 11 policies and 12 readable rules. Profiles now support selecting, adding, excluding, or clearing optional assignments, with reasons, expiration dates, before/after previews, and “Use automatic assignment.” Employee/group and rule editing arrive in later increments.
+**Current increment: PR 4 — employee changes and onboarding.** Browse the seeded team, inspect assignments on any date, and explore 11 policies and 12 readable rules. Profiles support manual exceptions and dated location, department, employment-type, manager, and group edits. Add employees with assignment previews, including inline manual policies when required coverage is missing. Saves reconcile the employee and affected managers atomically. Rule/policy authoring remains for PR 5.
 
 ## Run locally
 
@@ -51,6 +51,7 @@ backend/
   app/resolver.py       Pure point/timeline resolver and field registry
   app/assignments.py    Input loading, transactional reconciliation, stored reads
   app/overrides.py      Validated in-memory override plans and atomic saves
+  app/employees.py      Dated employee/group plans, onboarding, and coverage fixes
   app/schemas.py        Typed API responses / generated frontend contract
   app/seed.py           Additive fictional fixtures
   app/main.py           HTTP routes
@@ -67,6 +68,7 @@ The data layer uses SQLAlchemy connections with explicit parameterized SQL. The 
 - [PR 1 manual walkthrough](docs/pr1-walkthrough.md)
 - [PR 2 manual walkthrough](docs/pr2-walkthrough.md)
 - [PR 3 manual walkthrough](docs/pr3-walkthrough.md)
+- [PR 4 manual walkthrough](docs/pr4-walkthrough.md)
 - [Architecture and schema diagram](docs/architecture.md)
 - [MVP implementation plan](implementation-plan.md)
 - [Schema design reference](policy-assignment-schema.md)

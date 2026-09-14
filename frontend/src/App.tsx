@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Assignments, RulesCatalog } from "./Assignments";
+import { EmployeeEditor } from "./EmployeeEditor";
 import {
   dateLabel,
   loadDirectory,
@@ -254,8 +255,16 @@ export default function App() {
                   </div>
                 </dl>
               </section>
-              <Assignments
+              <EmployeeEditor
                 key={person.id}
+                person={person}
+                people={people}
+                categories={categories}
+                today={data[0].today}
+                onSaved={() => setAttempt((n) => n + 1)}
+              />
+              <Assignments
+                key={`${person.id}-${attempt}`}
                 employeeId={person.id}
                 people={people}
                 categories={categories}
@@ -270,8 +279,14 @@ export default function App() {
                   <h1>People</h1>
                   <p>A place for everyone. Get to know your team.</p>
                 </div>
-                <span className="subtle-tag">Directory preview</span>
+                <span className="subtle-tag">Your team</span>
               </div>
+              <EmployeeEditor
+                people={people}
+                categories={categories}
+                today={data[0].today}
+                onSaved={() => setAttempt((n) => n + 1)}
+              />
               <div className="stats">
                 <div>
                   <span>People in your company</span>

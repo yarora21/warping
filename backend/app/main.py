@@ -8,8 +8,45 @@ from app.assignments import load_inputs, stored_intervals, assignment_transactio
 from app.overrides import OverrideCommand, OverrideImpact, OverrideView, plan_override, save_override
 from sqlalchemy.exc import IntegrityError
 from app.resolver import Interval, Gap, active, describe_conditions
+from datetime import date
+from app.employees import EmployeeCommand, EmployeeImpact, EmployeeFacts, EmployeeOptions, options, employee_facts, plan_employee, save_employee
 
 app = FastAPI(title="Northstar policy assignments", version="0.1.0")
+
+
+@app.get('/api/employee-options', response_model=EmployeeOptions)
+def employee_options():
+    with engine.connect() as connection:
+        return options(connection)
+
+
+@app.get('/api/people/{employee_id}/edit', response_model=EmployeeFacts)
+def employee_edit(employee_id: str, as_of: date):
+    try:
+        with engine.connect().execution_options(isolation_level='REPEATABLE READ') as connection:
+            return employee_facts(load_inputs(connection),employee_id,as_of)
+    except ValueError as error:
+        raise HTTPException(422,str(error)) from error
+
+
+@app.post('/api/employee-changes/preview', response_model=EmployeeImpact)
+def preview_employee(command: EmployeeCommand):
+    try:
+        with engine.connect().execution_options(isolation_level='REPEATABLE READ') as connection:
+            return plan_employee(load_inputs(connection),command,clock.today(),options(connection)).impact
+    except ValueError as error:
+        raise HTTPException(422,str(error)) from error
+
+
+@app.post('/api/employee-changes', response_model=EmployeeImpact)
+def change_employee(command: EmployeeCommand):
+    try:
+        with assignment_transaction() as connection:
+            return save_employee(connection,command,clock.today())
+    except ValueError as error:
+        raise HTTPException(422,str(error)) from error
+    except IntegrityError as error:
+        raise HTTPException(409,'This change conflicts with saved data. Check the email and scheduled changes, then preview again.') from error
 
 
 @app.get('/api/people/{employee_id}/overrides', response_model=list[OverrideView])

@@ -50,7 +50,7 @@ class OverrideImpact(BaseModel):
     saved: bool = False
 
 
-def plan_override(inputs: Inputs, command: OverrideCommand, today: date):
+def plan_override(inputs: Inputs, command: OverrideCommand, today: date, *, validate_coverage=True):
     if command.effective_from < today:
         raise ValueError('Choose today or a future effective date')
     category = next((c for c in inputs.categories if c['id']==command.category_id),None)
@@ -100,7 +100,7 @@ def plan_override(inputs: Inputs, command: OverrideCommand, today: date):
     updated.overrides.extend(inserts)
     before, _ = resolve_timeline(inputs,command.employee_id)
     after, gaps = resolve_timeline(updated,command.employee_id)
-    if gaps:
+    if gaps and validate_coverage:
         raise ValueError(gaps[0].message)
     impact = OverrideImpact(before=[i for i in before if i.category_id==category['id']],
                             after=[i for i in after if i.category_id==category['id']],
@@ -111,14 +111,18 @@ def plan_override(inputs: Inputs, command: OverrideCommand, today: date):
 def save_override(connection, command: OverrideCommand, today: date) -> OverrideImpact:
     # Caller owns assignment_transaction(); every save reloads and revalidates.
     impact, replaced, inserts = plan_override(load_inputs(connection),command,today)
+    write_override_rows(connection, replaced, inserts, command.reason)
+    reconcile(connection,[command.employee_id],reason=command.reason)
+    impact.saved = True
+    return impact
+
+
+def write_override_rows(connection, replaced, inserts, reason):
     for prior in replaced:
         connection.execute(text('''UPDATE employee_assignment_overrides
             SET superseded_at=now(),superseded_by='taylor',superseded_reason=:reason WHERE id=:id'''),
-            {'reason':command.reason,'id':prior['id']})
+            {'reason':reason,'id':prior['id']})
     for row in inserts:
         connection.execute(text('''INSERT INTO employee_assignment_overrides
             (id,employment_id,category_id,policy_id,is_single,action,effective_from,effective_to,created_by,reason)
             VALUES (:id,:employment_id,:category_id,:policy_id,:is_single,:action,:effective_from,:effective_to,:created_by,:reason)'''),row)
-    reconcile(connection,[command.employee_id],reason=command.reason)
-    impact.saved = True
-    return impact

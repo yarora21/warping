@@ -1,4 +1,4 @@
-# Architecture — PR 3
+# Architecture — PR 4
 
 ## Implemented
 
@@ -14,13 +14,13 @@ flowchart LR
     DIFF --> DB
     MIG[Alembic migrations] --> DB
     API -. OpenAPI types .-> UI
-    UI --> PREVIEW[Override preview / in-memory plan]
+    UI --> PREVIEW[Employee and override preview / in-memory plan]
     PREVIEW --> RESOLVE
-    UI --> SAVE[Override save / revalidate plan]
+    UI --> SAVE[Employee and override save / revalidate plan]
     SAVE --> LOCK
 ```
 
-The UI uses the API's demo clock date for labels. Backend queries use the same clock, selecting active attribute revisions and a current, upcoming, or most recent employment for directory display. Former/upcoming profiles use the last/first valid employment attributes and are visibly labeled; this directory fallback will not be used as an assignment resolver snapshot. Memberships displayed on profiles are current as of the selected demo date.
+The UI uses the API's demo clock date for labels. Backend queries use the same clock, selecting active attribute revisions and a current, upcoming, or most recent employment for directory display. Former/upcoming profiles use the last/first valid employment attributes and memberships and are visibly labeled; this directory fallback is not used as an assignment resolver snapshot.
 
 ```mermaid
 erDiagram
@@ -44,7 +44,7 @@ erDiagram
 
 Employment identity is stable; dated employment versions store the start and exclusive end. Attribute versions, memberships, and policy versions use the same interval convention. `NULL` ends are unbounded. PostgreSQL exclusion constraints reject overlapping nonsuperseded versions within their logical scope. A trigger prevents edits/deletes to recorded business values and permits supersession metadata to be set once.
 
-Employee/rule editors are still deferred to subsequent increments. Resolution rejects missing or overlapping employee snapshots during employment. The manual override service validates employment containment, category/action compatibility, and policy availability for the full override period. Stable employment identities isolate memberships and overrides from later rehires. Actor IDs are fictional labels, not authenticated identities.
+Rule editors remain for PR 5. Resolution rejects missing or overlapping employee snapshots during employment. The manual override service validates employment containment, category/action compatibility, and policy availability for the full override period. Stable employment identities isolate memberships and overrides from later rehires. Actor IDs are fictional labels, not authenticated identities.
 
 ## Resolution and reconciliation
 
@@ -60,7 +60,15 @@ The report reads stored intervals, identifies dates outside employment, and chec
 
 ## Next increments
 
-Input revisions retain source evidence. Assignment-change records preserve prior computed outcomes; a dedicated audit event table and history screen remain deferred. Onboarding/employee edits will reuse the override planner to include gap-fixing set overrides atomically.
+Input revisions retain source evidence. Assignment-change records preserve prior computed outcomes; a dedicated audit event table and history screen remain deferred. PR 5 adds rule/policy authoring and final handoff documentation.
+
+## Employee changes and onboarding
+
+`plan_employee()` builds proposed identity/employment, attribute, membership, and optional override revisions in memory. The same typed command drives preview and save. Edits split the active attribute/membership interval, superseding rather than mutating recorded business values. A group-only change avoids creating a redundant attribute revision. The affected set includes the employee and old/new managers; their complete timelines are resolved using direct-report employment boundaries. Reporting cycles are checked at all known future reporting boundaries.
+
+Preview returns required-coverage gaps rather than rejecting them. HR can supply set overrides for required categories in the same command, including before a new employee exists. The existing override planner validates each fix; employee planning checks final coverage after all fixes. Save reloads under the company lock, refuses remaining gaps, and writes identity, revisions, overrides, assignments, and change records in one transaction. The UI shows the actual saved before/after result and flags differences from preview.
+
+Edits and onboarding starts are limited to today/future dates. Conflicting scheduled attribute edits and membership changes are rejected with an explicit message; correction/cancellation, termination, rehire, and identity-editing workflows remain deferred. Existing catalog data and ordinary preview/save logic are reused, without new database tables or a generic workflow framework. No new seed fixtures or reset are required for PR 4.
 
 ## Manual overrides
 

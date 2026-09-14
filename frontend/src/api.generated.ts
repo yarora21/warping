@@ -4,6 +4,74 @@
  */
 
 export interface paths {
+  "/api/employee-options": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Employee Options */
+    get: operations["employee_options_api_employee_options_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/people/{employee_id}/edit": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Employee Edit */
+    get: operations["employee_edit_api_people__employee_id__edit_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/employee-changes/preview": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Preview Employee */
+    post: operations["preview_employee_api_employee_changes_preview_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/employee-changes": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Change Employee */
+    post: operations["change_employee_api_employee_changes_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/people/{employee_id}/overrides": {
     parameters: {
       query?: never;
@@ -237,6 +305,13 @@ export interface components {
       /** Policies */
       policies: components["schemas"]["Policy"][];
     };
+    /** Choice */
+    Choice: {
+      /** Id */
+      id: string;
+      /** Name */
+      name: string;
+    };
     /** Condition */
     Condition: {
       /** Field */
@@ -250,6 +325,96 @@ export interface components {
     Conditions: {
       /** All */
       all: components["schemas"]["Condition"][];
+    };
+    /** CoverageFix */
+    CoverageFix: {
+      /** Category Id */
+      category_id: string;
+      /** Policy Id */
+      policy_id: string;
+      /** Reason */
+      reason: string;
+    };
+    /** EmployeeCommand */
+    EmployeeCommand: {
+      /** Country */
+      country: string;
+      /** State */
+      state?: string | null;
+      /** Department Id */
+      department_id: string;
+      /**
+       * Employment Type
+       * @enum {string}
+       */
+      employment_type: "salaried" | "hourly" | "contractor";
+      /** Manager Id */
+      manager_id?: string | null;
+      /** Group Ids */
+      group_ids?: string[];
+      /**
+       * Request Id
+       * Format: uuid
+       */
+      request_id: string;
+      /** Employee Id */
+      employee_id?: string | null;
+      /** Name */
+      name?: string | null;
+      /** Email */
+      email?: string | null;
+      /**
+       * Effective From
+       * Format: date
+       */
+      effective_from: string;
+      /** Reason */
+      reason: string;
+      /** Coverage Fixes */
+      coverage_fixes?: components["schemas"]["CoverageFix"][];
+    };
+    /** EmployeeFacts */
+    EmployeeFacts: {
+      /** Country */
+      country: string;
+      /** State */
+      state?: string | null;
+      /** Department Id */
+      department_id: string;
+      /**
+       * Employment Type
+       * @enum {string}
+       */
+      employment_type: "salaried" | "hourly" | "contractor";
+      /** Manager Id */
+      manager_id?: string | null;
+      /** Group Ids */
+      group_ids?: string[];
+    };
+    /** EmployeeImpact */
+    EmployeeImpact: {
+      /** Employee Id */
+      employee_id: string;
+      /** Affected Employee Ids */
+      affected_employee_ids: string[];
+      /** Before */
+      before: components["schemas"]["Interval"][];
+      /** After */
+      after: components["schemas"]["Interval"][];
+      /** Gaps */
+      gaps: components["schemas"]["Gap"][];
+      /**
+       * Saved
+       * @default false
+       */
+      saved: boolean;
+    };
+    /** EmployeeOptions */
+    EmployeeOptions: {
+      /** Departments */
+      departments: components["schemas"]["Choice"][];
+      /** Groups */
+      groups: components["schemas"]["Choice"][];
     };
     /** Explanation */
     Explanation: {
@@ -545,6 +710,125 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+  employee_options_api_employee_options_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EmployeeOptions"];
+        };
+      };
+    };
+  };
+  employee_edit_api_people__employee_id__edit_get: {
+    parameters: {
+      query: {
+        as_of: string;
+      };
+      header?: never;
+      path: {
+        employee_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EmployeeFacts"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  preview_employee_api_employee_changes_preview_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["EmployeeCommand"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EmployeeImpact"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  change_employee_api_employee_changes_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["EmployeeCommand"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EmployeeImpact"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   employee_overrides_api_people__employee_id__overrides_get: {
     parameters: {
       query?: never;

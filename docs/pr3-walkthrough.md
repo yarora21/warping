@@ -1,6 +1,6 @@
 # PR 3 — Human walkthrough
 
-Run `make up` to apply migration 0003 and refresh the app at http://localhost:5180. Existing employee/rule data and assignments are preserved. For a fresh database, also run `make seed`. The default demo date is September 12, 2026. PR 2 is pushed; PR 3 remains local for review.
+Run `make up` to apply migration 0003 and refresh the app at http://localhost:5180. Existing employee/rule data and assignments are preserved. For a fresh database, also run `make seed`. The default demo date is September 12, 2026. PR 3 is pushed on `feat/pr3-manual-overrides`.
 
 1. Open Jamie Park and choose **Change assignment** in Manual exceptions. Select Pay schedule → Monthly pay, effective September 12, ending October 1 (exclusive). Enter a reason.
 2. Preview the change. The before/after view should show Monthly pay during the exception and Biweekly resuming October 1. Preview alone must not change the profile/report.

@@ -6,8 +6,14 @@ export type Settings = components["schemas"]["Settings"];
 
 export async function get<T>(path: string): Promise<T> {
   const response = await fetch(`/api/${path}`);
-  if (!response.ok)
-    throw new Error("We couldn’t load your company data. Please try again.");
+  if (!response.ok) {
+    const result = await response.json().catch(() => null);
+    throw new Error(
+      typeof result?.detail === "string"
+        ? result.detail
+        : "We couldn’t load your company data. Please try again.",
+    );
+  }
   return response.json() as Promise<T>;
 }
 
@@ -17,6 +23,32 @@ export type Report = components["schemas"]["AssignmentReport"];
 export type OverrideCommand = components["schemas"]["OverrideCommand"];
 export type OverrideImpact = components["schemas"]["OverrideImpact"];
 export type OverrideView = components["schemas"]["OverrideView"];
+export type EmployeeCommand = components["schemas"]["EmployeeCommand"];
+export type EmployeeImpact = components["schemas"]["EmployeeImpact"];
+export type EmployeeFacts = components["schemas"]["EmployeeFacts"];
+export type EmployeeOptions = components["schemas"]["EmployeeOptions"];
+
+export async function submitEmployee(
+  command: EmployeeCommand,
+  preview: boolean,
+): Promise<EmployeeImpact> {
+  const response = await fetch(
+    `/api/employee-changes${preview ? "/preview" : ""}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(command),
+    },
+  );
+  const result = await response.json();
+  if (!response.ok)
+    throw new Error(
+      typeof result.detail === "string"
+        ? result.detail
+        : "Check the required fields and effective date.",
+    );
+  return result;
+}
 
 export async function submitOverride(
   command: OverrideCommand,
