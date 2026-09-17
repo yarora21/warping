@@ -4,6 +4,261 @@
  */
 
 export interface paths {
+  "/api/people/{employee_id}/history": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Employee Events */
+    get: operations["employee_events_api_people__employee_id__history_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/rule-fields": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Fields For Rules */
+    get: operations["fields_for_rules_api_rule_fields_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/policies": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Add Policy */
+    post: operations["add_policy_api_policies_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/rule-changes/preview": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Preview Rule */
+    post: operations["preview_rule_api_rule_changes_preview_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/rule-changes": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Change Rule */
+    post: operations["change_rule_api_rule_changes_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/employee-options": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Employee Options */
+    get: operations["employee_options_api_employee_options_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/people/{employee_id}/edit": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Employee Edit */
+    get: operations["employee_edit_api_people__employee_id__edit_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/employee-changes/preview": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Preview Employee */
+    post: operations["preview_employee_api_employee_changes_preview_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/employee-changes": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Change Employee */
+    post: operations["change_employee_api_employee_changes_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/people/{employee_id}/overrides": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Employee Overrides */
+    get: operations["employee_overrides_api_people__employee_id__overrides_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/overrides/preview": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Preview Override */
+    post: operations["preview_override_api_overrides_preview_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/overrides": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Create Override */
+    post: operations["create_override_api_overrides_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/assignments/query": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Assignment Report */
+    post: operations["assignment_report_api_assignments_query_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/people/{employee_id}/timeline": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Timeline */
+    get: operations["timeline_api_people__employee_id__timeline_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/rules": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Rules */
+    get: operations["rules_api_rules_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/health": {
     parameters: {
       query?: never;
@@ -93,6 +348,50 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /** AssignmentDelta */
+    AssignmentDelta: {
+      /** Employee Id */
+      employee_id: string;
+      /**
+       * Effective From
+       * Format: date
+       */
+      effective_from: string;
+      /** Effective To */
+      effective_to: string | null;
+      /** Gained */
+      gained: string[];
+      /** Lost */
+      lost: string[];
+    };
+    /** AssignmentQuery */
+    AssignmentQuery: {
+      /**
+       * As Of
+       * Format: date
+       */
+      as_of: string;
+      /** Employee Ids */
+      employee_ids?: string[] | null;
+      /** Category Id */
+      category_id?: string | null;
+      /** Policy Id */
+      policy_id?: string | null;
+    };
+    /** AssignmentReport */
+    AssignmentReport: {
+      /**
+       * As Of
+       * Format: date
+       */
+      as_of: string;
+      /** Assignments */
+      assignments: components["schemas"]["Interval"][];
+      /** Gaps */
+      gaps: components["schemas"]["Gap"][];
+      /** Inactive Employee Ids */
+      inactive_employee_ids: string[];
+    };
     /** Category */
     Category: {
       /** Id */
@@ -107,10 +406,334 @@ export interface components {
       /** Policies */
       policies: components["schemas"]["Policy"][];
     };
+    /** Choice */
+    Choice: {
+      /** Id */
+      id: string;
+      /** Name */
+      name: string;
+    };
+    /** Condition */
+    Condition: {
+      /** Field */
+      field: string;
+      /** Operator */
+      operator: string;
+      /** Value */
+      value: string | number | boolean | string[];
+    };
+    /** Conditions */
+    Conditions: {
+      /** All */
+      all: components["schemas"]["Condition"][];
+    };
+    /** CoverageFix */
+    CoverageFix: {
+      /** Category Id */
+      category_id: string;
+      /** Policy Id */
+      policy_id: string;
+      /** Reason */
+      reason: string;
+    };
+    /** EmployeeCommand */
+    EmployeeCommand: {
+      /** Country */
+      country: string;
+      /** State */
+      state?: string | null;
+      /** Department Id */
+      department_id: string;
+      /**
+       * Employment Type
+       * @enum {string}
+       */
+      employment_type: "salaried" | "hourly" | "contractor";
+      /** Manager Id */
+      manager_id?: string | null;
+      /** Group Ids */
+      group_ids?: string[];
+      /**
+       * Request Id
+       * Format: uuid
+       */
+      request_id: string;
+      /** Employee Id */
+      employee_id?: string | null;
+      /** Name */
+      name?: string | null;
+      /** Email */
+      email?: string | null;
+      /**
+       * Effective From
+       * Format: date
+       */
+      effective_from: string;
+      /** Reason */
+      reason: string;
+      /** Coverage Fixes */
+      coverage_fixes?: components["schemas"]["CoverageFix"][];
+    };
+    /** EmployeeEvent */
+    EmployeeEvent: {
+      /** Id */
+      id: string;
+      /**
+       * Effective Date
+       * Format: date
+       */
+      effective_date: string;
+      /** Title */
+      title: string;
+      /** Changes */
+      changes: components["schemas"]["HistoryChange"][];
+      /** Reasons */
+      reasons: components["schemas"]["HistoryReason"][];
+    };
+    /** EmployeeFacts */
+    EmployeeFacts: {
+      /** Country */
+      country: string;
+      /** State */
+      state?: string | null;
+      /** Department Id */
+      department_id: string;
+      /**
+       * Employment Type
+       * @enum {string}
+       */
+      employment_type: "salaried" | "hourly" | "contractor";
+      /** Manager Id */
+      manager_id?: string | null;
+      /** Group Ids */
+      group_ids?: string[];
+    };
+    /** EmployeeImpact */
+    EmployeeImpact: {
+      /** Employee Id */
+      employee_id: string;
+      /** Affected Employee Ids */
+      affected_employee_ids: string[];
+      /** Before */
+      before: components["schemas"]["Interval"][];
+      /** After */
+      after: components["schemas"]["Interval"][];
+      /** Gaps */
+      gaps: components["schemas"]["Gap"][];
+      /**
+       * Saved
+       * @default false
+       */
+      saved: boolean;
+    };
+    /** EmployeeOptions */
+    EmployeeOptions: {
+      /** Departments */
+      departments: components["schemas"]["Choice"][];
+      /** Groups */
+      groups: components["schemas"]["Choice"][];
+    };
+    /** EmployeeTimeline */
+    EmployeeTimeline: {
+      /** Assignments */
+      assignments: components["schemas"]["Interval"][];
+      /** Exceptions */
+      exceptions: components["schemas"]["TimelineException"][];
+    };
+    /** Explanation */
+    Explanation: {
+      /**
+       * Schema Version
+       * @default 1
+       */
+      schema_version: number;
+      /**
+       * Decision
+       * @enum {string}
+       */
+      decision: "priority" | "union" | "missing_required" | "manual";
+      /** Category Name */
+      category_name: string;
+      /** Policy Name */
+      policy_name: string | null;
+      /** Input Revision Ids */
+      input_revision_ids: string[];
+      /** Matched Rules */
+      matched_rules: components["schemas"]["RuleEvidence"][];
+      /** Source Rule Version Ids */
+      source_rule_version_ids: string[];
+      /**
+       * Tie Broken
+       * @default false
+       */
+      tie_broken: boolean;
+      override?: components["schemas"]["OverrideEvidence"] | null;
+    };
+    /** Fact */
+    Fact: {
+      /** Field */
+      field: string;
+      /** Label */
+      label: string;
+      /** Operator */
+      operator: string;
+      /** Expected */
+      expected: string | number | boolean | string[];
+      /** Actual */
+      actual: string | number | boolean | string[] | null;
+      /** Satisfied */
+      satisfied: boolean;
+    };
+    /** FieldView */
+    FieldView: {
+      /** Id */
+      id: string;
+      /** Label */
+      label: string;
+      /** Kind */
+      kind: string;
+      /** Operators */
+      operators: string[];
+      /** Choices */
+      choices: components["schemas"]["Choice"][];
+    };
+    /** Gap */
+    Gap: {
+      /** Employee Id */
+      employee_id: string;
+      /** Category Id */
+      category_id: string;
+      /** Message */
+      message: string;
+    };
     /** HTTPValidationError */
     HTTPValidationError: {
       /** Detail */
       detail?: components["schemas"]["ValidationError"][];
+    };
+    /** HistoryChange */
+    HistoryChange: {
+      /** Field */
+      field: string;
+      /** Before */
+      before: string | null;
+      /** After */
+      after: string | null;
+    };
+    /** HistoryReason */
+    HistoryReason: {
+      /** Actor */
+      actor: string;
+      /** Reason */
+      reason: string;
+    };
+    /** Interval */
+    Interval: {
+      /** Employee Id */
+      employee_id: string;
+      /** Category Id */
+      category_id: string;
+      /** Policy Id */
+      policy_id: string;
+      /** Is Single */
+      is_single: boolean;
+      explanation: components["schemas"]["Explanation"];
+      /**
+       * Effective From
+       * Format: date
+       */
+      effective_from: string;
+      /** Effective To */
+      effective_to?: string | null;
+    };
+    /** OverrideCommand */
+    OverrideCommand: {
+      /**
+       * Request Id
+       * Format: uuid
+       */
+      request_id: string;
+      /** Employee Id */
+      employee_id: string;
+      /** Category Id */
+      category_id: string;
+      /** Policy Id */
+      policy_id?: string | null;
+      /**
+       * Action
+       * @enum {string}
+       */
+      action: "set" | "add" | "exclude" | "clear" | "end";
+      /** Target Override Id */
+      target_override_id?: string | null;
+      /**
+       * Effective From
+       * Format: date
+       */
+      effective_from: string;
+      /** Effective To */
+      effective_to?: string | null;
+      /** Reason */
+      reason: string;
+    };
+    /** OverrideEvidence */
+    OverrideEvidence: {
+      /** Id */
+      id: string;
+      /** Action */
+      action: string;
+      /** Reason */
+      reason: string;
+      /** Created By */
+      created_by: string;
+      /**
+       * Effective From
+       * Format: date
+       */
+      effective_from: string;
+      /** Effective To */
+      effective_to: string | null;
+    };
+    /** OverrideImpact */
+    OverrideImpact: {
+      /** Before */
+      before: components["schemas"]["Interval"][];
+      /** After */
+      after: components["schemas"]["Interval"][];
+      /** Overrides */
+      overrides: components["schemas"]["OverrideView"][];
+      /**
+       * Saved
+       * @default false
+       */
+      saved: boolean;
+    };
+    /** OverrideView */
+    OverrideView: {
+      /** Id */
+      id: string;
+      /** Employment Id */
+      employment_id: string;
+      /** Category Id */
+      category_id: string;
+      /** Policy Id */
+      policy_id: string | null;
+      /**
+       * Action
+       * @enum {string}
+       */
+      action: "set" | "add" | "exclude" | "clear";
+      /**
+       * Effective From
+       * Format: date
+       */
+      effective_from: string;
+      /** Effective To */
+      effective_to: string | null;
+      /** Reason */
+      reason: string;
+      /** Created By */
+      created_by: string;
     };
     /** Person */
     Person: {
@@ -164,6 +787,126 @@ export interface components {
        */
       effective_from: string;
     };
+    /** PolicyCommand */
+    PolicyCommand: {
+      /**
+       * Request Id
+       * Format: uuid
+       */
+      request_id: string;
+      /** Category Id */
+      category_id: string;
+      /** Name */
+      name: string;
+      /** Description */
+      description: string;
+      /**
+       * Effective From
+       * Format: date
+       */
+      effective_from: string;
+      /** Reason */
+      reason: string;
+    };
+    /** PolicyCreated */
+    PolicyCreated: {
+      /** Id */
+      id: string;
+      /** Name */
+      name: string;
+    };
+    /** PreservedManual */
+    PreservedManual: {
+      /** Employee Id */
+      employee_id: string;
+      /** Policy Name */
+      policy_name: string;
+      /** Action */
+      action: string;
+    };
+    /** RuleCommand */
+    RuleCommand: {
+      /**
+       * Request Id
+       * Format: uuid
+       */
+      request_id: string;
+      /**
+       * Action
+       * @enum {string}
+       */
+      action: "create" | "edit" | "end" | "reorder";
+      /** Category Id */
+      category_id: string;
+      /**
+       * Effective From
+       * Format: date
+       */
+      effective_from: string;
+      /** Reason */
+      reason: string;
+      /** Rule Id */
+      rule_id?: string | null;
+      /** Name */
+      name?: string | null;
+      /** Policy Id */
+      policy_id?: string | null;
+      conditions?: components["schemas"]["Conditions"] | null;
+      /** Ordered Rule Ids */
+      ordered_rule_ids?: string[];
+    };
+    /** RuleEvidence */
+    RuleEvidence: {
+      /** Rule Id */
+      rule_id: string;
+      /** Version Id */
+      version_id: string;
+      /** Name */
+      name: string;
+      /** Policy Id */
+      policy_id: string;
+      /** Priority */
+      priority: number;
+      /** Facts */
+      facts: components["schemas"]["Fact"][];
+    };
+    /** RuleImpact */
+    RuleImpact: {
+      /** Changes */
+      changes: components["schemas"]["AssignmentDelta"][];
+      /** Preserved Manual */
+      preserved_manual: components["schemas"]["PreservedManual"][];
+      /** Gaps */
+      gaps: components["schemas"]["Gap"][];
+      /**
+       * Saved
+       * @default false
+       */
+      saved: boolean;
+    };
+    /** RuleView */
+    RuleView: {
+      /** Id */
+      id: string;
+      /** Rule Id */
+      rule_id: string;
+      /** Name */
+      name: string;
+      /** Policy Id */
+      policy_id: string;
+      /** Priority */
+      priority: number;
+      conditions: components["schemas"]["Conditions"];
+      /** Summary */
+      summary: string;
+      /**
+       * Effective From
+       * Format: date
+       */
+      effective_from: string;
+      /** Effective To */
+      effective_to: string | null;
+    };
     /** Settings */
     Settings: {
       /**
@@ -184,6 +927,35 @@ export interface components {
        */
       actor: string;
     };
+    /** TimelineException */
+    TimelineException: {
+      /** Id */
+      id: string;
+      /** Category Id */
+      category_id: string;
+      /** Category Name */
+      category_name: string;
+      /** Policy Id */
+      policy_id: string | null;
+      /** Policy Name */
+      policy_name: string | null;
+      /**
+       * Action
+       * @enum {string}
+       */
+      action: "exclude" | "clear";
+      /**
+       * Effective From
+       * Format: date
+       */
+      effective_from: string;
+      /** Effective To */
+      effective_to: string | null;
+      /** Reason */
+      reason: string;
+      /** Created By */
+      created_by: string;
+    };
     /** ValidationError */
     ValidationError: {
       /** Location */
@@ -202,6 +974,456 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+  employee_events_api_people__employee_id__history_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        employee_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EmployeeEvent"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  fields_for_rules_api_rule_fields_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["FieldView"][];
+        };
+      };
+    };
+  };
+  add_policy_api_policies_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PolicyCommand"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PolicyCreated"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  preview_rule_api_rule_changes_preview_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["RuleCommand"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RuleImpact"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  change_rule_api_rule_changes_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["RuleCommand"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RuleImpact"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  employee_options_api_employee_options_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EmployeeOptions"];
+        };
+      };
+    };
+  };
+  employee_edit_api_people__employee_id__edit_get: {
+    parameters: {
+      query: {
+        as_of: string;
+      };
+      header?: never;
+      path: {
+        employee_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EmployeeFacts"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  preview_employee_api_employee_changes_preview_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["EmployeeCommand"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EmployeeImpact"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  change_employee_api_employee_changes_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["EmployeeCommand"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EmployeeImpact"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  employee_overrides_api_people__employee_id__overrides_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        employee_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OverrideView"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  preview_override_api_overrides_preview_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["OverrideCommand"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OverrideImpact"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  create_override_api_overrides_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["OverrideCommand"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OverrideImpact"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  assignment_report_api_assignments_query_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AssignmentQuery"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AssignmentReport"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  timeline_api_people__employee_id__timeline_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        employee_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EmployeeTimeline"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  rules_api_rules_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RuleView"][];
+        };
+      };
+    };
+  };
   health_api_health_get: {
     parameters: {
       query?: never;
@@ -297,7 +1519,9 @@ export interface operations {
   };
   categories_api_categories_get: {
     parameters: {
-      query?: never;
+      query?: {
+        as_of?: string | null;
+      };
       header?: never;
       path?: never;
       cookie?: never;
@@ -311,6 +1535,15 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["Category"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
       };
     };

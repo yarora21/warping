@@ -4,6 +4,8 @@ from datetime import timedelta
 from sqlalchemy import text
 from app.clock import today
 from app.database import engine
+from app.assignments import assignment_transaction, reconcile
+import json
 
 
 def months_before(day, months):
@@ -12,7 +14,7 @@ def months_before(day, months):
 
 
 def seed(connection):
-    # Shared company lock; PR 2 adds reconciliation before this transaction commits.
+    # Lock before fixture reads and writes; reconciliation shares this transaction.
     connection.execute(text("SELECT pg_advisory_xact_lock(72021001)"))
     reference = today()
     departments = [("engineering", "Engineering"), ("people", "People"), ("operations", "Operations"),
@@ -93,7 +95,7 @@ def seed(connection):
             ("manager", "Manager essentials", "Build a respectful, supportive workplace for your direct reports.")]),
     ]
     for key, name, cardinality, policies in catalog:
-        connection.execute(text("INSERT INTO assignment_categories VALUES (:id,:name,:cardinality) ON CONFLICT DO NOTHING"),
+        connection.execute(text("INSERT INTO assignment_categories (id,name,cardinality) VALUES (:id,:name,:cardinality) ON CONFLICT DO NOTHING"),
                            {"id": key, "name": name, "cardinality": cardinality})
         for policy_id, title, description in policies:
             added = connection.execute(text("INSERT INTO policies VALUES (:id,:category) ON CONFLICT DO NOTHING RETURNING id"),
@@ -105,8 +107,34 @@ def seed(connection):
                     {"version": f"policy_{policy_id}_1", "id": policy_id, "name": title,
                      "description": description, "start": months_before(reference, 120)})
 
+    rule_fixtures = [
+        ('pay_default', 'Default monthly pay', 'monthly', 100, []),
+        ('pay_us', 'US employee pay', 'biweekly', 10, [('country','equals','US'), ('employment_type','in',['salaried','hourly'])]),
+        ('vacation_default', 'Standard vacation for everyone', 'standard', 100, []),
+        ('vacation_tenure', 'Extended vacation after two years', 'extended', 10, [('tenure_months','gte',24)]),
+        ('sick_us', 'US sick leave', 'sick_standard', 10, [('country','equals','US')]),
+        ('slack_all', 'Slack for everyone', 'slack', 10, []),
+        ('github_engineering', 'GitHub for Engineering', 'github', 10, [('department_id','equals','engineering')]),
+        ('figma_design', 'Figma for Design', 'figma', 10, [('department_id','equals','design')]),
+        ('figma_launch', 'Figma for the Launch team', 'figma', 20, [('group_ids','in',['launch'])]),
+        ('security_all', 'Security training for everyone', 'security', 10, []),
+        ('training_ca', 'California meal break training', 'ca_meal', 10, [('country','equals','US'),('state','equals','CA')]),
+        ('training_manager', 'Training for people managers', 'manager', 10, [('is_manager','equals',True)]),
+    ]
+    for rule_id, name, policy, priority, clauses in rule_fixtures:
+        added = connection.execute(text('INSERT INTO assignment_rules VALUES (:id) ON CONFLICT DO NOTHING RETURNING id'), {'id': rule_id}).scalar()
+        if added:
+            # Use the existing policy's start, not a fresh clock-relative seed date.
+            connection.execute(text('''INSERT INTO assignment_rule_versions
+                (id,rule_id,policy_id,name,priority,conditions,effective_from,created_by,change_reason)
+                SELECT :id,:rule,:policy,:name,:priority,CAST(:conditions AS jsonb),min(effective_from),'taylor','Initial demo rule'
+                FROM policy_versions WHERE policy_id=:policy'''),
+                {'id': f'rule_{rule_id}_1', 'rule': rule_id, 'policy': policy, 'name': name, 'priority': priority,
+                 'conditions': json.dumps({'all': [{'field': f, 'operator': op, 'value': value} for f, op, value in clauses]})})
+    reconcile(connection, reason='Add missing demo fixtures')
+
 
 if __name__ == "__main__":
-    with engine.begin() as connection:
+    with assignment_transaction() as connection:
         seed(connection)
-    print("Demo fixtures added. Existing records were preserved. PR 1: assignment calculation is not enabled yet.")
+    print("Missing fixtures added and assignments reconciled. Existing input records were preserved.")

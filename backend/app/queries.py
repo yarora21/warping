@@ -15,7 +15,8 @@ def people(connection: Connection, as_of: date) -> list[Person]:
             COALESCE((SELECT array_agg(g.name ORDER BY g.name)
                 FROM group_memberships gm JOIN groups g ON g.id = gm.group_id
                 WHERE gm.employment_id = job.employment_id AND gm.superseded_at IS NULL
-                AND daterange(gm.effective_from, gm.effective_to, '[)') @> CAST(:as_of AS date)
+                AND daterange(gm.effective_from, gm.effective_to, '[)') @>
+                    GREATEST(job.effective_from, LEAST(CAST(:as_of AS date), COALESCE(job.effective_to - 1, CAST(:as_of AS date))))
             ), ARRAY[]::text[]) AS groups
         FROM employees e
         JOIN LATERAL (

@@ -245,26 +245,22 @@ Defer a dedicated audit log and history screen. Preserve input revisions with ac
 ```text
 reconciliation_runs
   id
-  triggered_by
-  trigger_reason
-  input_revision_ids    revisions that triggered the run; empty for maintenance
-  resolved_during
-  started_at
-  completed_at
+  actor
+  reason
+  employee_ids           reconciled population
+  created_at
 
 assignment_changes
   id
   run_id
-  employee_id
-  category_id
-  policy_id
-  action                 assigned | removed | changed
-  before                 jsonb; prior interval and explanation
-  after                  jsonb; resulting interval and explanation
+  action                 assigned | removed
+  snapshot               jsonb; employee/category/policy, interval and explanation
 
 ```
 
 Write revisions and assignment-change records in the same transaction as their changes. Require human reasons for overrides and historical corrections; routine edits can use a generated description with an optional note. Keep prior revisions even after an override ends or a rule is retired. Use a clearly identified seeded HR actor for the local demo; authentication is outside the initial scope.
+
+PR 2 records changed intervals as removal/addition pairs linked by a reconciliation run, preserving both explanations without a separate change-event abstraction. A no-op reconciliation writes neither a run nor change records.
 
 A later history view can assemble actor, recorded time, effective date, before/after values, reason, and linked assignment impact from these records. Add a dedicated event table only when a concrete workflow needs it. The initial UI exposes assignment explanations and override attribution, not a separate history screen.
 
