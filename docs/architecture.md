@@ -1,4 +1,4 @@
-# Architecture — PR 4
+# Architecture — MVP / PR 5
 
 ## Implemented
 
@@ -14,9 +14,9 @@ flowchart LR
     DIFF --> DB
     MIG[Alembic migrations] --> DB
     API -. OpenAPI types .-> UI
-    UI --> PREVIEW[Employee and override preview / in-memory plan]
+    UI --> PREVIEW[Employee, override and rule preview / in-memory plan]
     PREVIEW --> RESOLVE
-    UI --> SAVE[Employee and override save / revalidate plan]
+    UI --> SAVE[Employee, override and rule save / revalidate plan]
     SAVE --> LOCK
 ```
 
@@ -44,7 +44,7 @@ erDiagram
 
 Employment identity is stable; dated employment versions store the start and exclusive end. Attribute versions, memberships, and policy versions use the same interval convention. `NULL` ends are unbounded. PostgreSQL exclusion constraints reject overlapping nonsuperseded versions within their logical scope. A trigger prevents edits/deletes to recorded business values and permits supersession metadata to be set once.
 
-Rule editors remain for PR 5. Resolution rejects missing or overlapping employee snapshots during employment. The manual override service validates employment containment, category/action compatibility, and policy availability for the full override period. Stable employment identities isolate memberships and overrides from later rehires. Actor IDs are fictional labels, not authenticated identities.
+Resolution rejects missing or overlapping employee snapshots during employment. The manual override service validates employment containment, category/action compatibility, and policy availability for the full override period. Stable employment identities isolate memberships and overrides from later rehires. Actor IDs are fictional labels, not authenticated identities.
 
 ## Resolution and reconciliation
 
@@ -60,9 +60,27 @@ The report reads stored intervals, identifies dates outside employment, and chec
 
 ## Next increments
 
-Input revisions retain source evidence. Assignment-change records preserve prior computed outcomes; a dedicated audit event table and history screen remain deferred. PR 5 adds rule/policy authoring and final handoff documentation.
+Input revisions retain source evidence. Assignment-change records preserve prior computed outcomes; a dedicated audit event table and history screen remain deferred. Further work should follow human feedback, not speculative infrastructure.
+
+## Policy and rule authoring
+
+`rules.py` exposes registry metadata for the condition builder, ordinary typed policy/rule commands, a pure rule planner, and a save adapter. Group/department values use lookup IDs; operators and value types are validated against the same registry used by resolution. Rules use a flat AND of conditions; an empty list matches everyone in active employment.
+
+Create/edit/end and reorder operations produce immutable dated revisions. New rules append to the category's order. Reordering translates the displayed list into ascending internal priorities and splits affected revisions at the effective date; the UI never asks HR to enter priority numbers. Single categories use the first matching rule, while multiple categories retain every matching policy. Conflicting scheduled versions are rejected rather than overwritten.
+
+Preview resolves the whole company before and after the proposal, including employees who cease matching. Policy gains/losses are compared at the union of timeline boundaries, and adjacent equal changes are merged for display. Evidence-only changes do not masquerade as policy changes. Manual set/add/exclude/clear exceptions are identified as preserved. Save replans under the shared lock, rejects remaining required gaps, and reconciles all employees atomically. Creating a policy alone does not assign it; a rule or manual exception must do that. Future policy availability is validated over the rule's entire period.
 
 ## Employee changes and onboarding
+
+`employee_history.py` projects effective employee milestones from the existing
+nonsuperseded employment, attribute, and membership revisions. It compares facts
+at stored boundaries, merges same-date changes into one event, resolves lookup
+names, and includes recorded actor/reason metadata. Unchanged revision boundaries
+do not create fake events. Hires use employment metadata so later attribute
+shortening does not relabel the original hire reason. The read runs under one
+repeatable-read snapshot and adds no event table or write path. The profile links
+each event to assignments on that date; rules, tenure, and overrides can also
+cause assignment changes independently of employee events.
 
 `plan_employee()` builds proposed identity/employment, attribute, membership, and optional override revisions in memory. The same typed command drives preview and save. Edits split the active attribute/membership interval, superseding rather than mutating recorded business values. A group-only change avoids creating a redundant attribute revision. The affected set includes the employee and old/new managers; their complete timelines are resolved using direct-report employment boundaries. Reporting cycles are checked at all known future reporting boundaries.
 
@@ -78,11 +96,19 @@ Single categories allow set (and clear only for optional categories). Multiple c
 
 Source explanations include manual reasons, actor, revision ID, and effective dates. Exclusions and explicit clears remain visible on the profile even when they produce no assignment row. Test data lives in a random temporary schema, so human-created exceptions do not interfere with deterministic tests.
 
+The employee timeline API is a read model with separate `assignments` and
+`exceptions` collections, loaded in one repeatable-read snapshot. Exceptions
+contain nonsuperseded exclude/clear intervals with policy/category labels and
+reasons. The UI merges them by effective date; no fake assignment rows or resolver
+changes are needed. Superseded revisions are not displayed, while shortened
+historical intervals remain visible. This is effective history, not an audit log
+of every save or undo.
+
 ## Tradeoffs
 
 - One database and service are appropriate for a seeded company. A company-wide write lock favors understandable consistency over write concurrency.
 - Explicit SQL keeps the interval constraints visible. SQLAlchemy provides parameterization, pooling, and transactions; typed API responses define the client contract.
-- The initial company catalog is seeded and read-only. Policy payloads and business-specific execution remain outside the assignment engine.
+- Categories and lookup catalogs are seeded; HR can add policies within those categories. Policy payloads and business-specific execution remain outside the assignment engine.
 - At scale, use input dependencies to narrow recomputation, including old and new matches. Per-employee locking would also require shared-rule revision coordination. External delivery would need a transactional outbox and idempotent consumers.
 - Tenant isolation and production authentication are future work. Nothing in the local demo represents a production security boundary.
 

@@ -4,14 +4,62 @@ from app import clock, queries
 from app.database import engine
 from app.schemas import Category, Person, Settings
 from app.schemas import AssignmentQuery, AssignmentReport, RuleView
-from app.assignments import load_inputs, stored_intervals, assignment_transaction
+from app.assignments import load_inputs, stored_intervals, assignment_transaction, EmployeeTimeline, employee_timeline
 from app.overrides import OverrideCommand, OverrideImpact, OverrideView, plan_override, save_override
 from sqlalchemy.exc import IntegrityError
 from app.resolver import Interval, Gap, active, describe_conditions
 from datetime import date
 from app.employees import EmployeeCommand, EmployeeImpact, EmployeeFacts, EmployeeOptions, options, employee_facts, plan_employee, save_employee
+from app.rules import RuleCommand, RuleImpact, FieldView, PolicyCommand, PolicyCreated, rule_fields, plan_rule, save_rule, create_policy
+from app.employee_history import EmployeeEvent, employee_history
 
 app = FastAPI(title="Northstar policy assignments", version="0.1.0")
+
+
+@app.get('/api/people/{employee_id}/history', response_model=list[EmployeeEvent])
+def employee_events(employee_id: str):
+    try:
+        with engine.connect().execution_options(isolation_level='REPEATABLE READ') as connection:
+            return employee_history(connection,employee_id)
+    except ValueError as error:
+        raise HTTPException(404,str(error)) from error
+
+
+@app.get('/api/rule-fields', response_model=list[FieldView])
+def fields_for_rules():
+    with engine.connect() as connection:
+        return rule_fields(connection)
+
+
+@app.post('/api/policies', response_model=PolicyCreated)
+def add_policy(command: PolicyCommand):
+    try:
+        with assignment_transaction() as connection:
+            return create_policy(connection,command,clock.today())
+    except ValueError as error:
+        raise HTTPException(422,str(error)) from error
+    except IntegrityError as error:
+        raise HTTPException(409,'This policy was already saved or conflicts with existing data. Refresh the catalog.') from error
+
+
+@app.post('/api/rule-changes/preview', response_model=RuleImpact)
+def preview_rule(command: RuleCommand):
+    try:
+        with engine.connect().execution_options(isolation_level='REPEATABLE READ') as connection:
+            return plan_rule(load_inputs(connection),command,clock.today(),rule_fields(connection))[0]
+    except ValueError as error:
+        raise HTTPException(422,str(error)) from error
+
+
+@app.post('/api/rule-changes', response_model=RuleImpact)
+def change_rule(command: RuleCommand):
+    try:
+        with assignment_transaction() as connection:
+            return save_rule(connection,command,clock.today())
+    except ValueError as error:
+        raise HTTPException(422,str(error)) from error
+    except IntegrityError as error:
+        raise HTTPException(409,'This rule change conflicts with saved data. Reload the rules and preview again.') from error
 
 
 @app.get('/api/employee-options', response_model=EmployeeOptions)
@@ -100,12 +148,12 @@ def assignment_report(query: AssignmentQuery):
                                 inactive_employee_ids=sorted(ids-employed))
 
 
-@app.get('/api/people/{employee_id}/timeline', response_model=list[Interval])
+@app.get('/api/people/{employee_id}/timeline', response_model=EmployeeTimeline)
 def timeline(employee_id: str):
-    with engine.connect() as connection:
+    with engine.connect().execution_options(isolation_level='REPEATABLE READ') as connection:
         if not connection.execute(text('SELECT 1 FROM employees WHERE id=:id'), {'id': employee_id}).scalar():
             raise HTTPException(404, 'Employee not found')
-        return [interval for _, interval in stored_intervals(connection, [employee_id])]
+        return employee_timeline(connection,employee_id)
 
 
 @app.get('/api/rules', response_model=list[RuleView])
@@ -144,6 +192,11 @@ def person(employee_id: str):
 
 
 @app.get("/api/categories", response_model=list[Category])
-def categories():
+def categories(as_of: date | None = None):
     with engine.connect() as connection:
-        return queries.catalog(connection, clock.today())
+        return queries.catalog(connection, as_of or clock.today())
+
+
+# Keep this last so the frontend mount cannot shadow API routes.
+from app.static import mount_frontend
+mount_frontend(app)

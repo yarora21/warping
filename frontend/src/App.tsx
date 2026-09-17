@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Assignments, RulesCatalog } from "./Assignments";
+import { Assignments } from "./Assignments";
+import { RuleEditor } from "./RuleEditor";
 import { EmployeeEditor } from "./EmployeeEditor";
 import {
   dateLabel,
@@ -467,7 +468,11 @@ export default function App() {
                   <p>Run the seed command to explore example categories.</p>
                 </div>
               )}
-              <RulesCatalog categories={categories} />
+              <RuleEditor
+                people={people}
+                today={data[0].today}
+                onSaved={() => setAttempt((n) => n + 1)}
+              />
               {categories.map((category) => (
                 <section className="category-section" key={category.id}>
                   <div className="category-title">

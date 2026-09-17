@@ -133,3 +133,27 @@ def test_invalid_edits_and_save_revalidation(company):
     saved = save_employee(company,command,TODAY)
     assert saved.after != preview.after
     assert 'monthly' in policies(company,'jamie',MOVE)
+
+
+def test_employee_history_groups_real_dated_changes_and_hires(company):
+    from app.employee_history import employee_history
+    initial = employee_history(company,'jamie')
+    assert len(initial)==1 and initial[0].title=='Hired'
+    original_hire_reason=initial[0].reasons
+    save_employee(company,edit(company,state='CA',department_id='sales',manager_id='sam',group_ids=[],reason='Team relocation'),TODAY)
+    history=employee_history(company,'jamie')
+    assert len(history)==2 and history[0].effective_date==MOVE
+    assert history[-1].reasons==original_hire_reason
+    changes={c.field:(c.before,c.after) for c in history[0].changes}
+    assert changes=={'Location':('NY, US','CA, US'),'Department':('Engineering','Sales'),
+                     'Manager':('Alex Chen','Sam Rivera'),'Groups':('Launch team','No groups')}
+    assert len(history[0].reasons)==1 and history[0].reasons[0].reason=='Team relocation'
+    assert history[0].reasons[0].actor=='Taylor Brooks'
+    # Group-only removal has no new attribute revision, but still has its own milestone.
+    save_employee(company,edit(company,'morgan',group_ids=[],reason='Launch finished'),TODAY)
+    group_event=employee_history(company,'morgan')[0]
+    assert group_event.title=='Groups changed' and group_event.reasons[0].reason=='Launch finished'
+    hired=save_employee(company,new_hire(),TODAY)
+    new_history=employee_history(company,hired.employee_id)
+    assert len(new_history)==1 and new_history[0].title=='Hired' and new_history[0].effective_date==MOVE
+    assert next(c for c in new_history[0].changes if c.field=='Groups').after=='Launch team'

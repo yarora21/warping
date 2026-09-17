@@ -1,8 +1,8 @@
 # Northstar — Policy Assignment System
 
-A single-company take-home implementation with a fictional team. The MVP will connect employee information and assignment rules to dated, explainable policy assignments.
+A single-company take-home implementation with a fictional team. Employee information and assignment rules resolve into dated, explainable policy assignments.
 
-**Current increment: PR 4 — employee changes and onboarding.** Browse the seeded team, inspect assignments on any date, and explore 11 policies and 12 readable rules. Profiles support manual exceptions and dated location, department, employment-type, manager, and group edits. Add employees with assignment previews, including inline manual policies when required coverage is missing. Saves reconcile the employee and affected managers atomically. Rule/policy authoring remains for PR 5.
+**Current increment: PR 5 — rule authoring and MVP handoff (local review).** HR can create policies, define/edit/end rules, arrange single-category rules visually, and preview assignment changes before saving. Profiles support dated employee/group edits, onboarding, and manual exceptions. The Assignments report resolves any selected employees on past/future dates. All edits reconcile stored timelines atomically and retain explanation evidence. PRs 1–4 are pushed; PR 5 is local pending human review.
 
 ## Run locally
 
@@ -28,6 +28,8 @@ Do not use `docker compose down -v` unless you intend to erase this demo databas
 
 ## Frontend development
 
+For a hosted demo, see [Deploy on Render and Neon](docs/deployment.md). The root Dockerfile combines the UI and API into one service; `render.yaml` selects Render's free plan.
+
 With Node 22 and the API running:
 
 ```sh
@@ -52,6 +54,8 @@ backend/
   app/assignments.py    Input loading, transactional reconciliation, stored reads
   app/overrides.py      Validated in-memory override plans and atomic saves
   app/employees.py      Dated employee/group plans, onboarding, and coverage fixes
+  app/employee_history.py Effective employee milestones projected from existing revisions
+  app/rules.py          Registry-driven rule authoring, ordering, policy creation, and impact diffs
   app/schemas.py        Typed API responses / generated frontend contract
   app/seed.py           Additive fictional fixtures
   app/main.py           HTTP routes
@@ -65,12 +69,19 @@ The data layer uses SQLAlchemy connections with explicit parameterized SQL. The 
 
 ## Review and design
 
+- [Submission: system design and tradeoffs](SUBMISSION.md)
 - [PR 1 manual walkthrough](docs/pr1-walkthrough.md)
 - [PR 2 manual walkthrough](docs/pr2-walkthrough.md)
 - [PR 3 manual walkthrough](docs/pr3-walkthrough.md)
 - [PR 4 manual walkthrough](docs/pr4-walkthrough.md)
-- [Architecture and schema diagram](docs/architecture.md)
+- [PR 5 / end-to-end demo](docs/pr5-walkthrough.md)
+- [Extension guide and MVP limits](docs/extending.md)
+- [System diagram](docs/system-diagram.md)
+- [Rendered database schema](docs/database-schema.md)
+- [Detailed architecture notes](docs/architecture.md)
 - [MVP implementation plan](implementation-plan.md)
 - [Schema design reference](policy-assignment-schema.md)
 
 Testing is intentionally focused on domain/database correctness. Browser interactions, layout, keyboard navigation, and accessibility review are manual; there are no automated computer-use tests.
+
+The focused backend suite has 47 tests covering resolution, finite date boundaries, immutable evidence, cardinality, rollback, controlled-order concurrency, overrides, employee edits, and rule reconciliation. Generated API types and the frontend production build are checked separately.

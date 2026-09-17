@@ -1,0 +1,19 @@
+# Deploy the repository root as one service; PostgreSQL is hosted on Neon.
+services:
+  - type: web
+    name: northstar
+    runtime: docker
+    plan: free
+    region: virginia
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: APP_TODAY
+        value: "2026-09-12"
+      - key: COMPANY_TIMEZONE
+        value: America/New_York
+      - key: SEED_DEMO_ON_EMPTY_DB
+        value: "true"

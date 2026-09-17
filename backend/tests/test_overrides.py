@@ -3,7 +3,7 @@ from uuid import uuid4
 import pytest
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
-from app.assignments import load_inputs, stored_intervals, reconcile
+from app.assignments import load_inputs, stored_intervals, reconcile, employee_timeline
 from app.database import engine
 from app.overrides import OverrideCommand, plan_override, save_override
 from app.resolver import resolve
@@ -104,5 +104,33 @@ def test_exclusion_survives_recompute_and_employment_end_is_enforced():
             next(j for j in data.jobs if j['employee_id']=='jamie')['effective_to']=date(2026,9,15)
             with pytest.raises(ValueError,match='end date'):
                 plan_override(data,command(),date(2026,9,12))
+        finally:
+            tx.rollback()
+
+
+@pytest.mark.parametrize('action,category,policy', [('exclude','apps','github'),('clear','sick',None)])
+def test_timeline_includes_negative_decisions_without_fake_assignments(action,category,policy):
+    with engine.connect() as connection:
+        tx=connection.begin()
+        try:
+            seed(connection)
+            proposal=command(action=action,category_id=category,policy_id=policy)
+            save_override(connection,proposal,date(2026,9,12))
+            timeline=employee_timeline(connection,'jamie')
+            exception=next(o for o in timeline.exceptions if o.id==str(proposal.request_id))
+            assert exception.action==action and exception.reason==proposal.reason
+            assert exception.category_name and exception.effective_to==date(2026,10,1)
+            assert exception.policy_name==('GitHub' if policy else None)
+            assert all(not i.explanation.override or i.explanation.override.id!=exception.id for i in timeline.assignments)
+            # Ending later preserves the effective exclusion/clear interval in history.
+            save_override(connection,command(action='end',category_id=category,policy_id=None,target_override_id=exception.id,
+                effective_from=date(2026,9,20),effective_to=None),date(2026,9,12))
+            history=employee_timeline(connection,'jamie').exceptions
+            assert len(history)==1 and history[0].effective_to==date(2026,9,20)
+            assert history[0].id!=exception.id  # Superseded revision is not rendered twice.
+            # Undoing from the original start leaves no effective interval, not a phantom row.
+            save_override(connection,command(action='end',category_id=category,policy_id=None,target_override_id=history[0].id,
+                effective_from=date(2026,9,12),effective_to=None),date(2026,9,12))
+            assert employee_timeline(connection,'jamie').exceptions==[]
         finally:
             tx.rollback()

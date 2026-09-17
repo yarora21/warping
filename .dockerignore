@@ -1,0 +1,15 @@
+.git
+.env
+.env.*
+**/.env
+**/.env.*
+**/node_modules
+**/dist
+**/__pycache__
+**/.pytest_cache
+**/.venv
+**/*.pyc
+.agents
+.codex
+docs
+*.md

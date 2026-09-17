@@ -4,6 +4,14 @@ Run `make up` and open http://localhost:5180. No migration, fixture upgrade, or 
 
 ## Jamie moves and leaves a group
 
+Employee-history follow-up: each profile now has an **Employee history** section
+above its assignments. After a hire, move, manager/department change, or group
+change, check the newest event for its effective date, before/after values, and
+recorded reason. Future events are marked Scheduled. **View assignments on this
+date** selects that date, clears assignment filters, and jumps to the report.
+The hire event should retain the original hire reason after later edits. This
+shows effective employee history, not an audit entry for every save or undo.
+
 1. Open Jamie Park → **Edit employee**. Choose October 1, 2026 first, then change State / region to CA and uncheck Launch team. Enter a reason.
 2. **Preview assignments**. The after column should include CA meal-break training. Figma access disappears unless a manual exception grants it. GitHub still follows Engineering and any existing manual exception. Existing manual pay remains unchanged.
 3. **Save employee change**. The profile still shows the information effective on the demo date. In Policy assignments, select October 1 to see the new assignments; September 30 still shows the previous ones. Newest timeline start dates appear first.
@@ -34,4 +42,4 @@ To manually check revalidation, open an employee preview in one tab and save a m
 - Generated API types, TypeScript/Vite production build, and formatting checks.
 - No browser/computer-use tests. Visual layout, keyboard behavior, and the walkthrough above are for human review.
 
-PR 4 remains local until explicitly requested to push.
+PR 4 is pushed on `feat/pr4-employee-workflows`.

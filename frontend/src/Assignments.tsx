@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 import { Overrides } from "./Overrides";
+import { EmployeeHistory } from "./EmployeeHistory";
 import {
   dateLabel,
   get,
   queryAssignments,
   type Category,
   type Interval,
+  type EmployeeTimeline,
+  type TimelineException,
   type Person,
   type Report,
-  type Rule,
 } from "./api";
 
 function valueLabel(value: unknown) {
@@ -120,7 +122,9 @@ export function Assignments({
   const [category, setCategory] = useState("");
   const [policy, setPolicy] = useState("");
   const [report, setReport] = useState<Report | null>(null);
-  const [timeline, setTimeline] = useState<Interval[]>([]);
+  const [timeline, setTimeline] = useState<(Interval | TimelineException)[]>(
+    [],
+  );
   const [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);
   const selectionKey = selected.join(",");
@@ -138,13 +142,13 @@ export function Assignments({
         policy_id: policy || null,
       }),
       employeeId
-        ? get<Interval[]>(`people/${employeeId}/timeline`)
-        : Promise.resolve([]),
+        ? get<EmployeeTimeline>(`people/${employeeId}/timeline`)
+        : Promise.resolve({ assignments: [], exceptions: [] }),
     ])
       .then(([result, intervals]) => {
         if (alive) {
           setReport(result);
-          setTimeline(intervals);
+          setTimeline([...intervals.assignments, ...intervals.exceptions]);
         }
       })
       .catch((reason: Error) => {
@@ -170,6 +174,17 @@ export function Assignments({
         </div>
       )}
       {employeeId && (
+        <EmployeeHistory
+          employeeId={employeeId}
+          today={today}
+          onSelectDate={(date) => {
+            setDay(date);
+            setCategory("");
+            setPolicy("");
+          }}
+        />
+      )}
+      {employeeId && (
         <Overrides
           employeeId={employeeId}
           categories={categories}
@@ -178,7 +193,7 @@ export function Assignments({
           onSaved={() => setAttempt((n) => n + 1)}
         />
       )}
-      <div className="panel">
+      <div className="panel" id="policy-assignments">
         <div className="toolbar assignment-toolbar">
           <h2>{employeeId ? "Policy assignments" : "Assignment report"}</h2>
           <div className="filters">
@@ -340,6 +355,10 @@ export function Assignments({
             <h2>Assignment timeline</h2>
             <span className="muted">End dates are exclusive</span>
           </div>
+          <p className="assignment-note">
+            Includes assigned policies and explicit manual exclusions. End dates
+            are the first day a decision no longer applies.
+          </p>
           <div className="table-scroll">
             <table>
               <thead>
@@ -363,16 +382,53 @@ export function Assignments({
                   .map((a, i) => (
                     <tr key={i}>
                       <td>
-                        {a.explanation.category_name}
+                        {"explanation" in a
+                          ? a.explanation.category_name
+                          : a.category_name}
                         <br />
-                        <strong>{a.explanation.policy_name}</strong>
+                        <strong>
+                          {"explanation" in a
+                            ? a.explanation.policy_name
+                            : a.action === "exclude"
+                              ? `${a.policy_name ?? "Policy"} excluded`
+                              : "Left unassigned"}
+                        </strong>
+                        <br />
+                        <span className="pill">
+                          {"explanation" in a
+                            ? a.explanation.override
+                              ? "Manual assignment"
+                              : "Automatic"
+                            : "Manual exception"}
+                        </span>
                       </td>
                       <td>{dateLabel(a.effective_from)}</td>
                       <td>
                         {a.effective_to ? dateLabel(a.effective_to) : "Ongoing"}
                       </td>
                       <td>
-                        <Why assignment={a} />
+                        {"explanation" in a ? (
+                          <Why assignment={a} />
+                        ) : (
+                          <details className="why">
+                            <summary>Why?</summary>
+                            <div className="explanation">
+                              <strong>
+                                {a.action === "exclude"
+                                  ? "This policy is explicitly excluded, even if a rule would assign it."
+                                  : "This optional category is explicitly left unassigned."}
+                              </strong>
+                              <p>{a.reason}</p>
+                              <small>
+                                Set by{" "}
+                                {a.created_by === "taylor"
+                                  ? "Taylor Brooks"
+                                  : a.created_by}
+                                .
+                              </small>
+                            </div>
+                          </details>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -381,52 +437,6 @@ export function Assignments({
           </div>
         </section>
       )}
-    </section>
-  );
-}
-
-export function RulesCatalog({ categories }: { categories: Category[] }) {
-  const [rules, setRules] = useState<Rule[] | null>(null);
-  const [error, setError] = useState("");
-  useEffect(() => {
-    let alive = true;
-    get<Rule[]>("rules")
-      .then((r) => {
-        if (alive) setRules(r);
-      })
-      .catch(() => {
-        if (alive) setError("Rules could not be loaded.");
-      });
-    return () => {
-      alive = false;
-    };
-  }, []);
-  const policies = Object.fromEntries(
-    categories.flatMap((c) => c.policies).map((p) => [p.id, p.name]),
-  );
-  return (
-    <section className="panel">
-      <div className="panel-heading">
-        <h2>Assignment rules</h2>
-        <span className="muted">Rules determine who receives each policy</span>
-      </div>
-      {error && <p role="alert">{error}</p>}
-      {!rules && !error && <p className="assignment-note">Loading rules…</p>}
-      {rules?.map((rule) => (
-        <details className="rule-list-item" key={rule.id}>
-          <summary>
-            <strong>{rule.name}</strong> → {policies[rule.policy_id]}
-          </summary>
-          <p>
-            From {dateLabel(rule.effective_from)}
-            {rule.effective_to
-              ? ` until ${dateLabel(rule.effective_to)} (exclusive)`
-              : " onward"}
-            .
-          </p>
-          <p>{rule.summary}</p>
-        </details>
-      ))}
     </section>
   );
 }

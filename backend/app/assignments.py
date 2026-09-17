@@ -2,11 +2,48 @@
 import json
 from contextlib import contextmanager
 from uuid import uuid4
+from datetime import date
+from typing import Literal
+from pydantic import BaseModel
 from sqlalchemy import text
 from app.database import engine
 from app.resolver import Inputs, Interval, resolve_timeline
 
 LOCK_ID = 72021001
+
+
+class TimelineException(BaseModel):
+    id: str
+    category_id: str
+    category_name: str
+    policy_id: str | None
+    policy_name: str | None
+    action: Literal['exclude', 'clear']
+    effective_from: date
+    effective_to: date | None
+    reason: str
+    created_by: str
+
+
+class EmployeeTimeline(BaseModel):
+    assignments: list[Interval]
+    exceptions: list[TimelineException]
+
+
+def employee_timeline(connection, employee_id: str) -> EmployeeTimeline:
+    # Exclusions/clears are decisions, not positive policy assignments. Keep them
+    # out of employee_assignments and combine them only in this read model.
+    rows = connection.execute(text('''SELECT o.id,o.category_id,c.name AS category_name,
+        o.policy_id,p.name AS policy_name,o.action,o.effective_from,o.effective_to,o.reason,o.created_by
+        FROM employee_assignment_overrides o
+        JOIN employments e ON e.id=o.employment_id
+        JOIN assignment_categories c ON c.id=o.category_id
+        LEFT JOIN policy_versions p ON p.policy_id=o.policy_id AND p.superseded_at IS NULL
+            AND daterange(p.effective_from,p.effective_to,'[)') @> o.effective_from
+        WHERE e.employee_id=:id AND o.superseded_at IS NULL AND o.action IN ('exclude','clear')
+        ORDER BY o.effective_from DESC,o.id'''), {'id':employee_id}).mappings()
+    return EmployeeTimeline(assignments=[i for _,i in stored_intervals(connection,[employee_id])],
+                            exceptions=[TimelineException.model_validate(r) for r in rows])
 
 
 def load_inputs(connection) -> Inputs:

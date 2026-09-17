@@ -6,7 +6,7 @@ Build a complete, small take-home demonstration for one company with seeded data
 
 This plan defines implementation scope. The [schema proposal](policy-assignment-schema.md) describes the model and extension possibilities; its deferred workflows are not prerequisites for the MVP.
 
-**Implementation status:** PRs 1–3 are implemented and pushed as branch increments. PR 4 is implemented locally with 39 passing backend tests, generated API types, and frontend checks; see its [manual walkthrough](docs/pr4-walkthrough.md). PR 5 remains to be implemented. No automated browser tests are included.
+**Implementation status:** PRs 1–4 are implemented and pushed as branch increments. PR 5 is implemented locally with 47 passing backend tests, generated API types, and frontend checks; see the [end-to-end walkthrough](docs/pr5-walkthrough.md). Human UI review and the final push/submission remain. No automated browser tests are included.
 
 ## Required versus deferred
 

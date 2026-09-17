@@ -18,6 +18,9 @@ export async function get<T>(path: string): Promise<T> {
 }
 
 export type Interval = components["schemas"]["Interval"];
+export type EmployeeTimeline = components["schemas"]["EmployeeTimeline"];
+export type EmployeeEvent = components["schemas"]["EmployeeEvent"];
+export type TimelineException = components["schemas"]["TimelineException"];
 export type Rule = components["schemas"]["RuleView"];
 export type Report = components["schemas"]["AssignmentReport"];
 export type OverrideCommand = components["schemas"]["OverrideCommand"];
@@ -27,6 +30,28 @@ export type EmployeeCommand = components["schemas"]["EmployeeCommand"];
 export type EmployeeImpact = components["schemas"]["EmployeeImpact"];
 export type EmployeeFacts = components["schemas"]["EmployeeFacts"];
 export type EmployeeOptions = components["schemas"]["EmployeeOptions"];
+export type RuleCommand = components["schemas"]["RuleCommand"];
+export type RuleImpact = components["schemas"]["RuleImpact"];
+export type FieldView = components["schemas"]["FieldView"];
+export type Condition = components["schemas"]["Condition"];
+export type PolicyCommand = components["schemas"]["PolicyCommand"];
+export type PolicyCreated = components["schemas"]["PolicyCreated"];
+
+export async function post<T>(path: string, body: unknown): Promise<T> {
+  const response = await fetch(`/api/${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const result = await response.json();
+  if (!response.ok)
+    throw new Error(
+      typeof result.detail === "string"
+        ? result.detail
+        : "Check the required fields and condition values.",
+    );
+  return result;
+}
 
 export async function submitEmployee(
   command: EmployeeCommand,

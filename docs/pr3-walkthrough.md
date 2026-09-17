@@ -1,5 +1,12 @@
 # PR 3 — Human walkthrough
 
+Timeline follow-up: exclude GitHub or clear optional Sick leave, then save. The
+timeline should show “GitHub excluded” or “Left unassigned,” a Manual exception
+badge, effective dates, and the reason under Why. Category/policy filters still
+apply. Ending an exception on a later date preserves its earlier interval;
+undoing it from its original start removes it from the effective timeline.
+Superseded decisions remain in audit records, not as misleading active entries.
+
 Run `make up` to apply migration 0003 and refresh the app at http://localhost:5180. Existing employee/rule data and assignments are preserved. For a fresh database, also run `make seed`. The default demo date is September 12, 2026. PR 3 is pushed on `feat/pr3-manual-overrides`.
 
 1. Open Jamie Park and choose **Change assignment** in Manual exceptions. Select Pay schedule → Monthly pay, effective September 12, ending October 1 (exclusive). Enter a reason.
