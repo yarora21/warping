@@ -2,7 +2,7 @@
 
 A single-company take-home implementation with a fictional team. The MVP will connect employee information and assignment rules to dated, explainable policy assignments.
 
-**Current increment: PR 1 — employee directory and policy catalog.** Browse 18 employees, inspect employment details, search/filter the directory, and explore 11 policies across five categories. Assignments, overrides, and editing arrive in later increments; catalog availability is not an employee assignment.
+
 
 ## Run locally
 
@@ -58,11 +58,4 @@ docs/                  Architecture and human walkthrough
 
 The initial data layer uses SQLAlchemy connections with explicit parameterized SQL. This avoids maintaining duplicate ORM models just for a small read surface. The migration is the source of truth for database constraints. New resolver modules will consume typed snapshots rather than HTTP requests or database state directly.
 
-## Review and design
 
-- [PR 1 manual walkthrough](docs/pr1-walkthrough.md)
-- [Architecture and schema diagram](docs/architecture.md)
-- [MVP implementation plan](implementation-plan.md)
-- [Schema design reference](policy-assignment-schema.md)
-
-Testing is intentionally focused on domain/database correctness. Browser interactions, layout, keyboard navigation, and accessibility review are manual; there are no automated computer-use tests.
